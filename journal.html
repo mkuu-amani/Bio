@@ -338,10 +338,16 @@
 
     async function loadJournal() {
       try {
-        if (!window.supabase || !SUPABASE_PUBLISHABLE_KEY ||
-            SUPABASE_PUBLISHABLE_KEY === "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68") {
-          throw new Error("The journal connection has not been configured.");
-        }
+        if (
+  !window.supabase ||
+  !SUPABASE_URL ||
+  !SUPABASE_PUBLISHABLE_KEY ||
+  SUPABASE_URL.includes("YOUR_") ||
+  SUPABASE_PUBLISHABLE_KEY.includes("YOUR_") ||
+  SUPABASE_PUBLISHABLE_KEY.includes("PASTE_")
+) {
+  throw new Error("The journal connection has not been configured.");
+}
 
         const client = window.supabase.createClient(
           SUPABASE_URL,
