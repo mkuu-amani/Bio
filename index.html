@@ -195,6 +195,33 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
+    
+/* Still Becoming — X social link */
+#about .social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: #b9c0cc;
+  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  transition: color 0.25s ease, opacity 0.25s ease;
+}
+
+#about .social-link svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+#about .social-link:hover {
+  color: #ffffff;
+  opacity: 1;
+}
+
   </style>
 </head>
 <body>
@@ -224,6 +251,22 @@
     </section>
   </main>
 
-  <footer id="about">Living to Learn · Learning To Live</footer>
+  
+<footer id="about">
+  <div>Living to Learn · Learning To Live</div>
+
+  <a
+    href="https://x.com/Mkuu_Amani"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Follow Mkuu Amani on X"
+    class="social-link"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3l-4.9-7.4L5.5 22H2.3l7.3-8.4L1.8 2h6.5l4.4 6.9L18.9 2Zm-1.1 18h1.7L7.3 3.9H5.5L17.8 20Z"/>
+    </svg>
+    <span>Find me on X</span>
+  </a>
+</footer>
 </body>
 </html>
