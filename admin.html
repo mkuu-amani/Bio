@@ -173,7 +173,7 @@
         <label for="video-source">Video source</label>
         <select id="video-source">
           <option value="upload">Upload a video from my device</option>
-          <option value="youtube">Use a YouTube video</option>
+          <option value="youtube">YouTube video or playlist</option>
         </select>
 
         <div id="video-upload-fields">
@@ -710,7 +710,8 @@
     }
   });
 
-  // VIDEOS — uploads and YouTube links.
+  
+  // VIDEOS — uploads, individual YouTube videos and playlists.
   const videoControls = document.getElementById("video-controls");
   const videoStatus = document.getElementById("video-status");
   const videoSource = document.getElementById("video-source");
@@ -733,114 +734,129 @@
     youtubeFields.hidden = !useYouTube;
   });
 
-  
-function getYouTubeSource(value) {
-  try {
-    const url = new URL(value.trim());
-    const host = url.hostname.toLowerCase();
+  function getYouTubeSource(value) {
+    try {
+      const url = new URL(value.trim());
+      const host = url.hostname.toLowerCase();
 
-    const allowedHosts = [
-      "youtube.com",
-      "www.youtube.com",
-      "m.youtube.com",
-      "music.youtube.com",
-      "youtu.be",
-      "www.youtu.be"
-    ];
+      const youtubeHosts = [
+        "youtube.com",
+        "www.youtube.com",
+        "m.youtube.com",
+        "music.youtube.com"
+      ];
 
-    if (!allowedHosts.includes(host)) return null;
+      const shortHosts = ["youtu.be", "www.youtu.be"];
 
-    // Recognise YouTube playlist links.
-    if (
-      ["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com"].includes(host) &&
-      url.pathname === "/playlist"
-    ) {
-      const playlistId = url.searchParams.get("list") || "";
+      if (![...youtubeHosts, ...shortHosts].includes(host)) {
+        return null;
+      }
 
-      if (/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) {
-        return {
-          type: "playlist",
-          id: playlistId
-        };
+      // Playlist links, such as youtube.com/playlist?list=PL...
+      if (youtubeHosts.includes(host) && url.pathname === "/playlist") {
+        const playlistId = url.searchParams.get("list") || "";
+
+        if (/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) {
+          return { type: "playlist", id: playlistId };
+        }
+
+        return null;
+      }
+
+      // Individual videos.
+      let id = "";
+
+      if (shortHosts.includes(host)) {
+        id = url.pathname.split("/").filter(Boolean)[0] || "";
+      } else if (url.pathname === "/watch") {
+        id = url.searchParams.get("v") || "";
+      } else {
+        const parts = url.pathname.split("/").filter(Boolean);
+
+        if (["embed", "shorts", "live"].includes(parts[0])) {
+          id = parts[1] || "";
+        }
+      }
+
+      if (/^[A-Za-z0-9_-]{11}$/.test(id)) {
+        return { type: "video", id };
       }
 
       return null;
+    } catch {
+      return null;
     }
-
-    // Recognise individual YouTube videos.
-    let id = "";
-
-    if (host === "youtu.be" || host === "www.youtu.be") {
-      id = url.pathname.split("/").filter(Boolean)[0] || "";
-    } else if (url.pathname === "/watch") {
-      id = url.searchParams.get("v") || "";
-    } else {
-      const parts = url.pathname.split("/").filter(Boolean);
-
-      if (["embed", "shorts", "live"].includes(parts[0])) {
-        id = parts[1] || "";
-      }
-    }
-
-    if (/^[A-Za-z0-9_-]{11}$/.test(id)) {
-      return {
-        type: "video",
-        id: id
-      };
-    }
-
-    return null;
-  } catch {
-    return null;
   }
-}
-
 
   async function loadEntryVideos(entryId) {
     entryVideos.replaceChildren();
+
     if (!entryId || !currentUser) return;
 
     const { data, error } = await supabaseClient
       .from("journal_entry_videos")
-      .select("id,entry_id,source_type,storage_path,video_url,youtube_id,caption,display_mode,sort_order")
+      .select(
+        "id,entry_id,source_type,storage_path,video_url,youtube_id,caption,display_mode,sort_order"
+      )
       .eq("entry_id", entryId)
       .order("sort_order", { ascending: true });
 
     if (error) {
-      videoMessage("Couldn't load video details. Please check the video database setup.");
+      videoMessage(
+        "Couldn't load video details. Please check the video database setup."
+      );
       return;
     }
 
     if (!data || data.length === 0) {
-      videoMessage("No videos added to this entry yet.");
+      videoMessage("No videos or playlists added to this entry yet.");
       return;
     }
 
-    videoMessage(data.length + " video(s) attached to this entry.");
+    videoMessage(data.length + " video(s) or playlist(s) attached to this entry.");
 
     for (const video of data) {
       const item = document.createElement("div");
       item.className = "entry";
 
+      let isPlaylist = false;
+
       if (video.source_type === "youtube") {
+        try {
+          isPlaylist =
+            new URL(video.video_url).pathname === "/playlist";
+        } catch {
+          isPlaylist = false;
+        }
+
         const link = document.createElement("a");
-        link.href = "https://www.youtube.com/watch?v=" +
-          encodeURIComponent(video.youtube_id);
+
+        link.href = isPlaylist
+          ? "https://www.youtube.com/playlist?list=" +
+            encodeURIComponent(video.youtube_id || "")
+          : "https://www.youtube.com/watch?v=" +
+            encodeURIComponent(video.youtube_id || "");
+
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.textContent = "Open YouTube video";
+        link.textContent = isPlaylist
+          ? "Open YouTube playlist"
+          : "Open YouTube video";
+
         item.append(link);
-      } else {
-        const { data: signed, error: signError } = await supabaseClient.storage
-          .from("journal-videos")
-          .createSignedUrl(video.storage_path, 3600);
+      } else if (video.source_type === "upload") {
+        const { data: signed, error: signError } =
+          await supabaseClient.storage
+            .from("journal-videos")
+            .createSignedUrl(video.storage_path, 3600);
 
         if (!signError && signed?.signedUrl) {
           const player = document.createElement("video");
           player.src = signed.signedUrl;
           player.controls = true;
           player.preload = "metadata";
-          player.className = "video-preview" +
+          player.className =
+            "video-preview" +
             (video.display_mode === "full-width" ? " full-width" : "");
           item.append(player);
         } else {
@@ -849,14 +865,21 @@ function getYouTubeSource(value) {
           note.textContent = "Preview unavailable.";
           item.append(note);
         }
+      } else {
+        continue;
       }
 
       const description = document.createElement("p");
       description.className = "muted";
       description.textContent =
-        (video.caption || "No caption") + " · " +
-        (video.source_type === "youtube" ? "YouTube" : "Uploaded video") +
-        " · " + (video.display_mode === "full-width" ? "Full-width" : "Inline");
+        (video.caption || "No caption") +
+        " · " +
+        (video.source_type === "youtube"
+          ? (isPlaylist ? "YouTube playlist" : "YouTube video")
+          : "Uploaded video") +
+        " · " +
+        (video.display_mode === "full-width" ? "Full-width" : "Inline");
+
       item.append(description);
 
       const remove = document.createElement("button");
@@ -865,12 +888,17 @@ function getYouTubeSource(value) {
       remove.textContent = "Remove video";
 
       remove.addEventListener("click", async () => {
-        if (!confirm("Remove this video from the journal?")) return;
+        if (!window.confirm("Remove this video or playlist from the journal?")) {
+          return;
+        }
+
         remove.disabled = true;
 
         const { error: deleteError } = await supabaseClient
-          .from("journal_entry_videos").delete()
-          .eq("id", video.id).eq("entry_id", entryId);
+          .from("journal_entry_videos")
+          .delete()
+          .eq("id", video.id)
+          .eq("entry_id", entryId);
 
         if (deleteError) {
           videoMessage("Couldn't remove the video record.");
@@ -879,16 +907,22 @@ function getYouTubeSource(value) {
         }
 
         let storageError = null;
-        if (video.source_type === "upload") {
+
+        if (video.source_type === "upload" && video.storage_path) {
           const result = await supabaseClient.storage
-            .from("journal-videos").remove([video.storage_path]);
+            .from("journal-videos")
+            .remove([video.storage_path]);
+
           storageError = result.error;
         }
 
         await loadEntryVideos(entryId);
-        videoMessage(storageError
-          ? "Video record removed; storage cleanup needs attention."
-          : "Video removed.");
+
+        videoMessage(
+          storageError
+            ? "Video record removed; storage cleanup needs attention."
+            : "Video or playlist removed."
+        );
       });
 
       item.append(remove);
@@ -903,8 +937,11 @@ function getYouTubeSource(value) {
     }
 
     const entryId = document.getElementById("entry-id").value;
+
     if (!entryId) {
-      videoMessage("Save your draft, then select Edit entry before adding videos.");
+      videoMessage(
+        "Save your draft, then select Edit entry before adding videos."
+      );
       return;
     }
 
@@ -913,59 +950,59 @@ function getYouTubeSource(value) {
 
     try {
       const { data: existing, error: listError } = await supabaseClient
-        .from("journal_entry_videos").select("sort_order")
+        .from("journal_entry_videos")
+        .select("sort_order")
         .eq("entry_id", entryId)
-        .order("sort_order", { ascending: false }).limit(1);
+        .order("sort_order", { ascending: false })
+        .limit(1);
 
       if (listError) throw listError;
-      const nextOrder = existing?.length ? existing[0].sort_order + 1 : 0;
+
+      const nextOrder = existing?.length
+        ? existing[0].sort_order + 1
+        : 0;
+
       const caption = videoCaption.value.trim();
       const displayMode = videoDisplayMode.value;
 
       if (videoSource.value === "youtube") {
-        const urlValue = youtubeUrl.value.trim();
-        
-if (videoSource.value === "youtube") {
-  const urlValue = youtubeUrl.value.trim();
-  const youtubeSource = getYouTubeSource(urlValue);
+        const youtubeSource = getYouTubeSource(youtubeUrl.value);
 
-  if (!youtubeSource) {
-    videoMessage(
-      "Please enter a valid YouTube video or playlist URL."
-    );
-    return;
-  }
+        if (!youtubeSource) {
+          videoMessage(
+            "Please enter a valid YouTube video or playlist URL."
+          );
+          return;
+        }
 
-  const isPlaylist = youtubeSource.type === "playlist";
+        const isPlaylist = youtubeSource.type === "playlist";
 
-  const savedUrl = isPlaylist
-    ? "https://www.youtube.com/playlist?list=" +
-      encodeURIComponent(youtubeSource.id)
-    : "https://www.youtube.com/watch?v=" +
-      encodeURIComponent(youtubeSource.id);
+        const savedUrl = isPlaylist
+          ? "https://www.youtube.com/playlist?list=" +
+            encodeURIComponent(youtubeSource.id)
+          : "https://www.youtube.com/watch?v=" +
+            encodeURIComponent(youtubeSource.id);
 
-  videoMessage(
-    isPlaylist
-      ? "Adding YouTube playlist…"
-      : "Adding YouTube video…"
-  );
+        videoMessage(
+          isPlaylist
+            ? "Adding YouTube playlist…"
+            : "Adding YouTube video…"
+        );
 
-  const { error } = await supabaseClient
-    .from("journal_entry_videos")
-    .insert({
-      entry_id: entryId,
-      source_type: "youtube",
-      video_url: savedUrl,
-      youtube_id: youtubeSource.id,
-      storage_path: null,
-      caption,
-      display_mode: displayMode,
-      sort_order: nextOrder
-    });
+        const { error } = await supabaseClient
+          .from("journal_entry_videos")
+          .insert({
+            entry_id: entryId,
+            source_type: "youtube",
+            video_url: savedUrl,
+            youtube_id: youtubeSource.id,
+            storage_path: null,
+            caption,
+            display_mode: displayMode,
+            sort_order: nextOrder
+          });
 
-  if (error) throw error;
-}
-
+        if (error) throw error;
       } else {
         const file = videoFile.files[0];
 
@@ -986,17 +1023,26 @@ if (videoSource.value === "youtube") {
         }
 
         if (file.size > 50 * 1024 * 1024) {
-          videoMessage("This video exceeds 50 MB. Please compress it or use a YouTube link.");
+          videoMessage(
+            "This video exceeds 50 MB. Please compress it or use a YouTube link."
+          );
           return;
         }
 
         videoMessage("Uploading video…");
 
-        storagePath = currentUser.id + "/" + entryId + "/" +
-          crypto.randomUUID() + "." + extensions[file.type];
+        storagePath =
+          currentUser.id +
+          "/" +
+          entryId +
+          "/" +
+          crypto.randomUUID() +
+          "." +
+          extensions[file.type];
 
         const { error: uploadError } = await supabaseClient.storage
-          .from("journal-videos").upload(storagePath, file, {
+          .from("journal-videos")
+          .upload(storagePath, file, {
             contentType: file.type,
             cacheControl: "3600",
             upsert: false
@@ -1005,7 +1051,8 @@ if (videoSource.value === "youtube") {
         if (uploadError) throw uploadError;
 
         const { error: metadataError } = await supabaseClient
-          .from("journal_entry_videos").insert({
+          .from("journal_entry_videos")
+          .insert({
             entry_id: entryId,
             source_type: "upload",
             storage_path: storagePath,
@@ -1017,7 +1064,10 @@ if (videoSource.value === "youtube") {
           });
 
         if (metadataError) {
-          await supabaseClient.storage.from("journal-videos").remove([storagePath]);
+          await supabaseClient.storage
+            .from("journal-videos")
+            .remove([storagePath]);
+
           storagePath = "";
           throw metadataError;
         }
@@ -1026,15 +1076,22 @@ if (videoSource.value === "youtube") {
       videoFile.value = "";
       youtubeUrl.value = "";
       videoCaption.value = "";
+
       await loadEntryVideos(entryId);
-      videoMessage("Video added. It will appear publicly only when its entry is published.");
+
+      videoMessage(
+        "Video or playlist added. It appears publicly only when its entry is published."
+      );
     } catch (error) {
       console.error("Journal video add error:", error);
-      videoMessage("Couldn't add the video. Check the video storage policies and database setup.");
+      videoMessage(
+        "Couldn't add the video. Check the video storage policies and database setup."
+      );
     } finally {
       videoAddButton.disabled = false;
     }
   });
+
 
   // Selecting an entry opens both media panels.
   entryList.addEventListener("click", () => {
