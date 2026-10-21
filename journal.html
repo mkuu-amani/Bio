@@ -420,17 +420,50 @@
 
           if (!/^[A-Za-z0-9_-]{11}$/.test(youtubeId)) return;
 
-          const iframe = document.createElement("iframe");
-          iframe.src =
-            "https://www.youtube-nocookie.com/embed/" +
-            encodeURIComponent(youtubeId);
-          iframe.title =
-            videoRow.caption || "YouTube video accompanying this reflection";
-          iframe.loading = "lazy";
-          iframe.referrerPolicy = "strict-origin-when-cross-origin";
-          iframe.allow =
-            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-          iframe.allowFullscreen = true;
+          
+const iframe = document.createElement("iframe");
+
+let embedUrl;
+
+try {
+  const storedUrl = new URL(videoRow.video_url || "");
+  const isPlaylist = storedUrl.pathname === "/playlist";
+
+  if (isPlaylist) {
+    const playlistId = videoRow.youtube_id || "";
+
+    if (!/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) {
+      return;
+    }
+
+    embedUrl =
+      "https://www.youtube-nocookie.com/embed/videoseries?list=" +
+      encodeURIComponent(playlistId);
+
+  } else {
+    if (!/^[A-Za-z0-9_-]{11}$/.test(youtubeId || "")) {
+      return;
+    }
+
+    embedUrl =
+      "https://www.youtube-nocookie.com/embed/" +
+      encodeURIComponent(youtubeId);
+  }
+} catch {
+  return;
+}
+
+iframe.src = embedUrl;
+iframe.title = videoRow.caption ||
+  (embedUrl.includes("/videoseries?")
+    ? "YouTube playlist accompanying this reflection"
+    : "YouTube video accompanying this reflection");
+iframe.loading = "lazy";
+iframe.referrerPolicy = "strict-origin-when-cross-origin";
+iframe.allow =
+  "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+iframe.allowFullscreen = true;
+
 
           figure.append(iframe);
         } else {
