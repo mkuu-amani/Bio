@@ -1,1 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b12">
+  <meta name="description" content="Discover the person and philosophy behind Still Becoming — Mkuu Amani.">
+  <title>My Story | Still Becoming — Mkuu Amani</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --white: #f7f8fb;
+      --muted: rgba(247,248,251,.72);
+      --line: rgba(255,255,255,.2);
+      --accent: #a9e7c8;
+    }
 
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--white);
+      background:
+        radial-gradient(ellipse at 80% 12%, rgba(72,100,111,.18), transparent 42%),
+        radial-gradient(ellipse at 10% 70%, rgba(77,85,107,.15), transparent 45%),
+        #080b12;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; }
+
+    .ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background: linear-gradient(
+        180deg,
+        rgba(8,11,18,.08),
+        rgba(8,11,18,.18) 40%,
+        #080b12 100%
+      );
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: clamp(1.2rem, 4vw, 2.6rem) clamp(1.2rem, 5vw, 4rem);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .wordmark {
+      font-size: .76rem;
+      font-weight: 750;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .top-link {
+      color: var(--muted);
+      font-size: .82rem;
+      text-decoration: none;
+      transition: color .2s ease;
+    }
+
+    .top-link:hover { color: var(--white); }
+
+    main {
+      width: min(100% - 2.4rem, 1000px);
+      margin: 0 auto;
+    }
+
+    .hero {
+      min-height: 76vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 7rem 0 6rem;
+      animation: rise .9s ease-out both;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      margin: 0 0 1.4rem;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 650;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 2.4rem;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    h1 {
+      max-width: 900px;
+      margin: 0;
+      font-size: clamp(3.5rem, 11vw, 8.5rem);
+      line-height: .88;
+      letter-spacing: -.075em;
+      font-weight: 800;
+      text-wrap: balance;
+    }
+
+    h1 span {
+      display: block;
+      margin-top: .16em;
+      color: var(--accent);
+    }
+
+    .hero-copy {
+      max-width: 590px;
+      margin: 2rem 0 0;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+      line-height: 1.85;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .8rem;
+      margin-top: 2.2rem;
+    }
+
+    .action {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .65rem;
+      padding: .85rem 1.25rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--white);
+      background: rgba(255,255,255,.06);
+      text-decoration: none;
+      font-size: .9rem;
+      font-weight: 650;
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    .action:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.14);
+    }
+
+    .action.primary {
+      color: #10131a;
+      background: var(--white);
+      border-color: var(--white);
+    }
+
+    .action.primary:hover { background: var(--accent); }
+
+    .section {
+      padding: clamp(3.5rem, 8vw, 6.5rem) 0;
+      border-top: 1px solid rgba(255,255,255,.12);
+    }
+
+    .section-number {
+      margin: 0 0 1.2rem;
+      color: var(--accent);
+      font-size: .72rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(2.2rem, 6vw, 4.5rem);
+      line-height: 1.02;
+      letter-spacing: -.055em;
+      font-weight: 750;
+      text-wrap: balance;
+    }
+
+    .section-copy {
+      max-width: 680px;
+      margin: 1.5rem 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.12rem);
+      line-height: 1.95;
+    }
+
+    .closing {
+      margin: 2rem 0 0;
+      padding: 1.5rem 0 1.5rem 1.3rem;
+      border-left: 2px solid var(--accent);
+      color: var(--white);
+      font-size: clamp(1.25rem, 3vw, 1.8rem);
+      line-height: 1.5;
+      letter-spacing: -.025em;
+    }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 2rem clamp(1.2rem, 5vw, 4rem);
+      border-top: 1px solid rgba(255,255,255,.1);
+      color: rgba(255,255,255,.55);
+      font-size: .75rem;
+      letter-spacing: .06em;
+    }
+
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    footer a:hover { color: var(--white); }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(22px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      .hero { min-height: 72vh; padding: 5rem 0; }
+      header { align-items: flex-start; }
+      .wordmark { max-width: 180px; line-height: 1.7; }
+      .section { padding: 3.5rem 0; }
+      footer { line-height: 1.8; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <header>
+    <div class="wordmark">Still Becoming · Mkuu Amani</div>
+    <a class="top-link" href="./index.html">← Back to home</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">Beyond the opening screen</p>
+      <h1>The story is never <span>finished.</span></h1>
+      <p class="hero-copy">
+        Welcome to my space. Still Becoming is about the journey,
+        the lessons, the ideas, and the experiences that continue to
+        shape who we are. Not a finished portrait, but a life in progress.
+      </p>
+      <div class="actions">
+        <a class="action primary" href="#the-idea">
+          Discover the idea <span aria-hidden="true">↓</span>
+        </a>
+        <a class="action" href="./journal.html">
+          Enter the Journal <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" id="the-idea">
+      <p class="section-number">01 / The idea</p>
+      <h2>Still becoming. Always learning.</h2>
+      <p class="section-copy">
+        We are shaped by where we have been, what we have experienced,
+        the people we meet, and the choices we make. There is always
+        more to understand, more to question, and another way to see
+        the world.
+      </p>
+      <p class="section-copy">
+        Still Becoming is a place for that ongoing process: making
+        sense of life, exploring ideas, and allowing room for growth
+        without pretending to have every answer.
+      </p>
+    </section>
+
+    <section class="section">
+      <p class="section-number">02 / The perspective</p>
+      <h2>A life is more than a single chapter.</h2>
+      <p class="section-copy">
+        Our interests, ambitions, relationships, challenges, and
+        creative pursuits all form part of a bigger picture. Each
+        chapter adds another layer; none of them tells the whole story.
+      </p>
+      <p class="section-copy">
+        This space brings those threads together. It is personal,
+        evolving, and open to the unexpected turns that make a journey
+        our own.
+      </p>
+    </section>
+
+    <section class="section">
+      <p class="section-number">03 / The journey</p>
+      <h2>Room to reflect. Space to grow.</h2>
+      <p class="section-copy">
+        Some thoughts are best shared in conversation. Others need
+        time, words, and a little space to unfold. The journal is where
+        I share selected reflections and moments along the way.
+      </p>
+      <p class="closing">
+        “Living to Learn · Learning To Live”
+      </p>
+      <div class="actions">
+        <a class="action primary" href="./journal.html">
+          Read the Journal <span aria-hidden="true">↗</span>
+        </a>
+        <a class="action" href="./index.html">
+          Return home <span aria-hidden="true">↖</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Still Becoming — Mkuu Amani</span>
+    <a href="./index.html">Home</a>
+  </footer>
+</body>
+</html>
