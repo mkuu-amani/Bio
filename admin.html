@@ -16,6 +16,7 @@
       --muted: #aaa9ae;
       --accent: #d4b47a;
       --line: #35363c;
+      --green: #9ac7a3;
     }
     * { box-sizing: border-box; }
     body {
@@ -55,12 +56,25 @@
       background: transparent; color: var(--text);
       border: 1px solid var(--line);
     }
+    button.publish { background: var(--green); }
     button:disabled { opacity: .5; cursor: wait; }
     .entry {
-      border-top: 1px solid var(--line); padding: 16px 0;
+      border-top: 1px solid var(--line);
+      padding: 20px 0;
       overflow-wrap: anywhere;
     }
     .entry h3 { margin: 0; }
+    .entry-meta {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      align-items: center; margin: 8px 0;
+    }
+    .badge {
+      display: inline-block; padding: 3px 9px;
+      border-radius: 20px; font-size: .75rem;
+      border: 1px solid var(--line);
+    }
+    .badge.private { color: var(--muted); }
+    .badge.published { color: var(--green); border-color: #496950; }
     #status { min-height: 1.5em; color: var(--accent); }
     [hidden] { display: none !important; }
   </style>
@@ -88,7 +102,10 @@
     </div>
 
     <div class="panel">
-      <h2>Write privately</h2>
+      <h2 id="editor-heading">Write privately</h2>
+      <p class="muted">
+        New entries begin as private drafts. Publish them only when you're ready.
+      </p>
       <form id="entry-form">
         <input id="entry-id" type="hidden">
         <label for="title">Title</label>
@@ -101,7 +118,10 @@
     </div>
 
     <div class="panel">
-      <h2>Your drafts</h2>
+      <h2>Your journal entries</h2>
+      <p class="muted">
+        Private entries are visible only to you. Published entries appear on your public journal.
+      </p>
       <div id="entries"></div>
     </div>
   </section>
@@ -111,8 +131,6 @@
 </main>
 
 <script>
-  // Replace these two placeholders with your Supabase project details.
-  // Use the Project URL and publishable key only. Never use the secret key.
   const SUPABASE_URL = "https://ayyxlmqkiakogpyvamhl.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
 
@@ -124,6 +142,7 @@
 
   let supabaseClient;
   let currentUser;
+  let busy = false;
 
   function message(text) {
     statusBox.textContent = text;
@@ -134,7 +153,7 @@
       SUPABASE_URL.includes("PASTE_") ||
       SUPABASE_PUBLISHABLE_KEY.includes("PASTE_")
     ) {
-      message("Setup needed: add your Supabase Project URL and publishable key.");
+      message("Setup needed: check your Supabase URL and publishable key.");
       return;
     }
 
@@ -159,7 +178,8 @@
     workspace.hidden = !currentUser;
 
     if (currentUser) {
-      document.getElementById("account").textContent = currentUser.email || "";
+      document.getElementById("account").textContent =
+        currentUser.email || "";
       await loadEntries();
     } else {
       entryList.replaceChildren();
@@ -192,24 +212,25 @@
   });
 
   async function loadEntries() {
+    if (!currentUser) return;
+
     const { data, error } = await supabaseClient
       .from("journal_entries")
-      .select("id,title,content,status,created_at,updated_at")
+      .select("id,title,content,status,created_at,updated_at,published_at")
       .eq("user_id", currentUser.id)
-      .eq("status", "private")
       .order("updated_at", { ascending: false });
 
     entryList.replaceChildren();
 
     if (error) {
-      message("Couldn't load drafts. Check your database policies.");
+      message("Couldn't load entries. Check your database policies.");
       return;
     }
 
-    if (!data.length) {
+    if (!data || data.length === 0) {
       const empty = document.createElement("p");
       empty.className = "muted";
-      empty.textContent = "Your private journal is ready for its first entry.";
+      empty.textContent = "Your journal is ready for its first entry.";
       entryList.append(empty);
       return;
     }
@@ -221,69 +242,180 @@
       const heading = document.createElement("h3");
       heading.textContent = entry.title;
 
-      const date = document.createElement("p");
+      const meta = document.createElement("div");
+      meta.className = "entry-meta";
+
+      const badge = document.createElement("span");
+      badge.className = "badge " +
+        (entry.status === "published" ? "published" : "private");
+      badge.textContent =
+        entry.status === "published" ? "Published" : "Private draft";
+
+      const date = document.createElement("span");
       date.className = "muted";
-      date.textContent = new Date(entry.updated_at).toLocaleString();
+      date.textContent = "Updated " +
+        new Date(entry.updated_at || entry.created_at).toLocaleString();
+
+      meta.append(badge, date);
+
+      if (entry.status === "published" && entry.published_at) {
+        const publishedDate = document.createElement("p");
+        publishedDate.className = "muted";
+        publishedDate.textContent = "Published " +
+          new Date(entry.published_at).toLocaleString();
+        article.append(heading, meta, publishedDate);
+      } else {
+        article.append(heading, meta);
+      }
 
       const preview = document.createElement("p");
-      preview.textContent = entry.content.slice(0, 180);
+      preview.textContent = entry.content.slice(0, 180) +
+        (entry.content.length > 180 ? "…" : "");
+      article.append(preview);
 
       const edit = document.createElement("button");
       edit.className = "secondary";
-      edit.textContent = "Edit draft";
+      edit.textContent = "Edit entry";
       edit.addEventListener("click", () => {
         document.getElementById("entry-id").value = entry.id;
         document.getElementById("title").value = entry.title;
         document.getElementById("content").value = entry.content;
+        document.getElementById("editor-heading").textContent =
+          entry.status === "published"
+            ? "Edit published entry"
+            : "Edit private draft";
+        document.getElementById("save-button").textContent = "Save changes";
+        message("Editing: " + entry.title);
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
+      article.append(edit);
 
-      article.append(heading, date, preview, edit);
+      const toggle = document.createElement("button");
+      if (entry.status === "published") {
+        toggle.className = "secondary";
+        toggle.textContent = "Unpublish";
+        toggle.addEventListener("click", () =>
+          changePublication(entry, false, toggle)
+        );
+      } else {
+        toggle.className = "publish";
+        toggle.textContent = "Publish";
+        toggle.addEventListener("click", () =>
+          changePublication(entry, true, toggle)
+        );
+      }
+      article.append(toggle);
       entryList.append(article);
     });
   }
 
+  async function changePublication(entry, publish, button) {
+    if (!currentUser || busy) return;
+
+    const action = publish ? "publish" : "unpublish";
+    const confirmation = publish
+      ? "Publish “" + entry.title + "” to your public journal?"
+      : "Remove “" + entry.title + "” from your public journal? It will remain saved privately.";
+
+    if (!window.confirm(confirmation)) return;
+
+    busy = true;
+    button.disabled = true;
+    message(publish ? "Publishing entry…" : "Making entry private…");
+
+    try {
+      const changes = {
+        status: publish ? "published" : "private",
+        published_at: publish ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabaseClient
+        .from("journal_entries")
+        .update(changes)
+        .eq("id", entry.id)
+        .eq("user_id", currentUser.id);
+
+      if (error) {
+        message("Couldn't change publication status. Your entry has not been deleted.");
+        return;
+      }
+
+      message(publish
+        ? "Published. Your entry should now appear on the public journal."
+        : "Unpublished. Your entry remains saved as a private draft.");
+
+      await loadEntries();
+    } catch {
+      message("Something went wrong. Please try again.");
+    } finally {
+      busy = false;
+      if (button.isConnected) button.disabled = false;
+    }
+  }
+
   entryForm.addEventListener("submit", async event => {
     event.preventDefault();
-    if (!currentUser) return;
+    if (!currentUser || busy) return;
 
     const button = document.getElementById("save-button");
     button.disabled = true;
 
     const id = document.getElementById("entry-id").value;
-    const entry = {
-      user_id: currentUser.id,
-      title: document.getElementById("title").value.trim(),
-      content: document.getElementById("content").value,
-      status: "private",
-      updated_at: new Date().toISOString()
-    };
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value;
+
+    if (!title || !content.trim()) {
+      message("Please enter a title and some writing.");
+      button.disabled = false;
+      return;
+    }
+
+    const now = new Date().toISOString();
 
     try {
       let result;
 
       if (id) {
+        // Preserve the existing publication status when editing.
         result = await supabaseClient
           .from("journal_entries")
-          .update(entry)
+          .update({
+            title,
+            content,
+            updated_at: now
+          })
           .eq("id", id)
           .eq("user_id", currentUser.id);
       } else {
+        // All new entries begin as private drafts.
         result = await supabaseClient
           .from("journal_entries")
-          .insert(entry);
+          .insert({
+            user_id: currentUser.id,
+            title,
+            content,
+            status: "private",
+            published_at: null,
+            updated_at: now
+          });
       }
 
       if (result.error) {
-        message("Draft wasn't saved. Check your connection and database policies.");
+        message("Entry wasn't saved. Check your connection and database policies.");
       } else {
-        message("Private draft saved.");
+        message(id
+          ? "Changes saved. Publication status unchanged."
+          : "Private draft saved.");
+
         entryForm.reset();
         document.getElementById("entry-id").value = "";
+        document.getElementById("editor-heading").textContent = "Write privately";
+        document.getElementById("save-button").textContent = "Save private draft";
         await loadEntries();
       }
     } catch {
-      message("Couldn't save your draft. Please try again.");
+      message("Couldn't save your entry. Please try again.");
     } finally {
       button.disabled = false;
     }
@@ -292,6 +424,8 @@
   document.getElementById("new-entry").addEventListener("click", () => {
     entryForm.reset();
     document.getElementById("entry-id").value = "";
+    document.getElementById("editor-heading").textContent = "Write privately";
+    document.getElementById("save-button").textContent = "Save private draft";
     message("");
   });
 
@@ -305,3 +439,4 @@
 </script>
 </body>
 </html>
+
