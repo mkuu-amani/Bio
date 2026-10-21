@@ -733,29 +733,68 @@
     youtubeFields.hidden = !useYouTube;
   });
 
-  function getYouTubeId(value) {
-    try {
-      const url = new URL(value.trim());
-      let id = "";
+  
+function getYouTubeSource(value) {
+  try {
+    const url = new URL(value.trim());
+    const host = url.hostname.toLowerCase();
 
-      if (url.hostname === "youtu.be" || url.hostname === "www.youtu.be") {
-        id = url.pathname.split("/").filter(Boolean)[0] || "";
-      } else if (
-        ["youtube.com", "www.youtube.com", "m.youtube.com"].includes(url.hostname)
-      ) {
-        if (url.pathname === "/watch") {
-          id = url.searchParams.get("v") || "";
-        } else {
-          const parts = url.pathname.split("/").filter(Boolean);
-          if (["embed", "shorts", "live"].includes(parts[0])) id = parts[1] || "";
-        }
+    const allowedHosts = [
+      "youtube.com",
+      "www.youtube.com",
+      "m.youtube.com",
+      "music.youtube.com",
+      "youtu.be",
+      "www.youtu.be"
+    ];
+
+    if (!allowedHosts.includes(host)) return null;
+
+    // Recognise YouTube playlist links.
+    if (
+      ["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com"].includes(host) &&
+      url.pathname === "/playlist"
+    ) {
+      const playlistId = url.searchParams.get("list") || "";
+
+      if (/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) {
+        return {
+          type: "playlist",
+          id: playlistId
+        };
       }
 
-      return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
-    } catch {
       return null;
     }
+
+    // Recognise individual YouTube videos.
+    let id = "";
+
+    if (host === "youtu.be" || host === "www.youtu.be") {
+      id = url.pathname.split("/").filter(Boolean)[0] || "";
+    } else if (url.pathname === "/watch") {
+      id = url.searchParams.get("v") || "";
+    } else {
+      const parts = url.pathname.split("/").filter(Boolean);
+
+      if (["embed", "shorts", "live"].includes(parts[0])) {
+        id = parts[1] || "";
+      }
+    }
+
+    if (/^[A-Za-z0-9_-]{11}$/.test(id)) {
+      return {
+        type: "video",
+        id: id
+      };
+    }
+
+    return null;
+  } catch {
+    return null;
   }
+}
+
 
   async function loadEntryVideos(entryId) {
     entryVideos.replaceChildren();
@@ -885,28 +924,48 @@
 
       if (videoSource.value === "youtube") {
         const urlValue = youtubeUrl.value.trim();
-        const youtubeId = getYouTubeId(urlValue);
+        
+if (videoSource.value === "youtube") {
+  const urlValue = youtubeUrl.value.trim();
+  const youtubeSource = getYouTubeSource(urlValue);
 
-        if (!youtubeId) {
-          videoMessage("Please enter a valid YouTube video URL.");
-          return;
-        }
+  if (!youtubeSource) {
+    videoMessage(
+      "Please enter a valid YouTube video or playlist URL."
+    );
+    return;
+  }
 
-        videoMessage("Adding YouTube video…");
+  const isPlaylist = youtubeSource.type === "playlist";
 
-        const { error } = await supabaseClient
-          .from("journal_entry_videos").insert({
-            entry_id: entryId,
-            source_type: "youtube",
-            video_url: "https://www.youtube.com/watch?v=" + youtubeId,
-            youtube_id: youtubeId,
-            storage_path: null,
-            caption,
-            display_mode: displayMode,
-            sort_order: nextOrder
-          });
+  const savedUrl = isPlaylist
+    ? "https://www.youtube.com/playlist?list=" +
+      encodeURIComponent(youtubeSource.id)
+    : "https://www.youtube.com/watch?v=" +
+      encodeURIComponent(youtubeSource.id);
 
-        if (error) throw error;
+  videoMessage(
+    isPlaylist
+      ? "Adding YouTube playlist…"
+      : "Adding YouTube video…"
+  );
+
+  const { error } = await supabaseClient
+    .from("journal_entry_videos")
+    .insert({
+      entry_id: entryId,
+      source_type: "youtube",
+      video_url: savedUrl,
+      youtube_id: youtubeSource.id,
+      storage_path: null,
+      caption,
+      display_mode: displayMode,
+      sort_order: nextOrder
+    });
+
+  if (error) throw error;
+}
+
       } else {
         const file = videoFile.files[0];
 
