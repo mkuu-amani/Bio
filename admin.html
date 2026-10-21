@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +40,7 @@
       border-radius: 16px; padding: 24px; margin-top: 24px;
     }
     label { display: block; margin: 16px 0 6px; }
-    input, textarea {
+    input, textarea, select {
       display: block; width: 100%; padding: 13px;
       background: #101114; color: var(--text);
       border: 1px solid var(--line); border-radius: 8px;
@@ -77,6 +78,14 @@
     .badge.published { color: var(--green); border-color: #496950; }
     #status { min-height: 1.5em; color: var(--accent); }
     [hidden] { display: none !important; }
+    .media-preview {
+      display: block; width: 100%; max-width: 560px;
+      height: auto; margin: 12px 0; border-radius: 8px;
+      background: #08090b;
+    }
+    .media-preview.full-width { max-width: 100%; }
+    .video-preview { width: 100%; max-width: 560px; }
+    .video-preview.full-width { max-width: 100%; }
   </style>
 </head>
 <body>
@@ -117,7 +126,6 @@
       </form>
     </div>
 
-    
     <div class="panel" id="photo-panel">
       <h2>Photographs</h2>
       <p class="muted">
@@ -131,18 +139,11 @@
 
       <div id="photo-controls" hidden>
         <label for="photo-file">Choose a photograph</label>
-        <input
-          id="photo-file"
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-        >
+        <input id="photo-file" type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif">
 
         <label for="photo-caption">Photo caption (optional)</label>
-        <input
-          id="photo-caption"
-          maxlength="300"
-          placeholder="Add a caption…"
-        >
+        <input id="photo-caption" maxlength="300" placeholder="Add a caption…">
 
         <label for="photo-display-mode">Display style</label>
         <select id="photo-display-mode">
@@ -156,9 +157,55 @@
       <div id="entry-photos"></div>
     </div>
 
+    <div class="panel" id="video-panel">
+      <h2>Videos</h2>
+      <p class="muted">
+        Save your entry first, then upload a video or add a YouTube link.
+        Uploaded files must be no larger than 50 MB. Videos remain private
+        until their journal entry is published.
+      </p>
+
+      <p id="video-status" class="muted" aria-live="polite">
+        Save or open a journal entry to add videos.
+      </p>
+
+      <div id="video-controls" hidden>
+        <label for="video-source">Video source</label>
+        <select id="video-source">
+          <option value="upload">Upload a video from my device</option>
+          <option value="youtube">Use a YouTube video</option>
+        </select>
+
+        <div id="video-upload-fields">
+          <label for="video-file">Choose a video (maximum 50 MB)</label>
+          <input id="video-file" type="file"
+            accept="video/mp4,video/webm,video/quicktime">
+        </div>
+
+        <div id="youtube-fields" hidden>
+          <label for="youtube-url">YouTube video URL</label>
+          <input id="youtube-url" type="url"
+            placeholder="https://www.youtube.com/watch?v=…">
+        </div>
+
+        <label for="video-caption">Video caption (optional)</label>
+        <input id="video-caption" maxlength="300"
+          placeholder="Add a caption…">
+
+        <label for="video-display-mode">Display style</label>
+        <select id="video-display-mode">
+          <option value="inline">Inline — within the article</option>
+          <option value="full-width">Full-width — cinematic video</option>
+        </select>
+
+        <button id="upload-video" type="button">Add video</button>
+      </div>
+
+      <div id="entry-videos"></div>
+    </div>
+
     <div class="panel">
       <h2>Your journal entries</h2>
-
       <p class="muted">
         Private entries are visible only to you. Published entries appear on your public journal.
       </p>
@@ -223,6 +270,10 @@
       await loadEntries();
     } else {
       entryList.replaceChildren();
+      document.getElementById("entry-photos").replaceChildren();
+      document.getElementById("entry-videos").replaceChildren();
+      document.getElementById("photo-controls").hidden = true;
+      document.getElementById("video-controls").hidden = true;
     }
   }
 
@@ -352,7 +403,6 @@
   async function changePublication(entry, publish, button) {
     if (!currentUser || busy) return;
 
-    const action = publish ? "publish" : "unpublish";
     const confirmation = publish
       ? "Publish “" + entry.title + "” to your public journal?"
       : "Remove “" + entry.title + "” from your public journal? It will remain saved privately.";
@@ -417,18 +467,12 @@
       let result;
 
       if (id) {
-        // Preserve the existing publication status when editing.
         result = await supabaseClient
           .from("journal_entries")
-          .update({
-            title,
-            content,
-            updated_at: now
-          })
+          .update({ title, content, updated_at: now })
           .eq("id", id)
           .eq("user_id", currentUser.id);
       } else {
-        // All new entries begin as private drafts.
         result = await supabaseClient
           .from("journal_entries")
           .insert({
@@ -452,6 +496,7 @@
         document.getElementById("entry-id").value = "";
         document.getElementById("editor-heading").textContent = "Write privately";
         document.getElementById("save-button").textContent = "Save private draft";
+        resetMediaPanels();
         await loadEntries();
       }
     } catch {
@@ -461,11 +506,26 @@
     }
   });
 
+  function resetMediaPanels() {
+    document.getElementById("photo-controls").hidden = true;
+    document.getElementById("video-controls").hidden = true;
+    document.getElementById("entry-photos").replaceChildren();
+    document.getElementById("entry-videos").replaceChildren();
+    document.getElementById("photo-file").value = "";
+    document.getElementById("photo-caption").value = "";
+    document.getElementById("video-file").value = "";
+    document.getElementById("youtube-url").value = "";
+    document.getElementById("video-caption").value = "";
+    photoMessage("Save or open a journal entry to add photographs.");
+    videoMessage("Save or open a journal entry to add videos.");
+  }
+
   document.getElementById("new-entry").addEventListener("click", () => {
     entryForm.reset();
     document.getElementById("entry-id").value = "";
     document.getElementById("editor-heading").textContent = "Write privately";
     document.getElementById("save-button").textContent = "Save private draft";
+    resetMediaPanels();
     message("");
   });
 
@@ -475,7 +535,7 @@
     else message("You've signed out.");
   });
 
-  // Still Becoming — private journal photo uploads
+  // PHOTOGRAPHS — existing workflow preserved.
   const photoControls = document.getElementById("photo-controls");
   const photoStatus = document.getElementById("photo-status");
   const photoFile = document.getElementById("photo-file");
@@ -488,15 +548,8 @@
     photoStatus.textContent = text;
   }
 
-  function photoObjectUrl(path) {
-    return SUPABASE_URL + "/storage/v1/object/" +
-      "journal-photos/" +
-      path.split("/").map(encodeURIComponent).join("/");
-  }
-
   async function loadEntryPhotos(entryId) {
     entryPhotos.replaceChildren();
-
     if (!entryId || !currentUser) return;
 
     const { data, error } = await supabaseClient
@@ -522,20 +575,15 @@
       item.className = "entry";
 
       const { data: signed, error: signError } =
-        await supabaseClient.storage
-          .from("journal-photos")
+        await supabaseClient.storage.from("journal-photos")
           .createSignedUrl(photo.storage_path, 3600);
 
       if (!signError && signed?.signedUrl) {
         const image = document.createElement("img");
         image.src = signed.signedUrl;
         image.alt = photo.caption || "Journal photograph";
-        image.style.width = photo.display_mode === "full-width"
-          ? "100%" : "min(100%, 560px)";
-        image.style.height = "auto";
-        image.style.display = "block";
-        image.style.margin = "12px 0";
-        image.style.borderRadius = "8px";
+        image.className = "media-preview" +
+          (photo.display_mode === "full-width" ? " full-width" : "");
         item.append(image);
       }
 
@@ -543,8 +591,7 @@
       description.className = "muted";
       description.textContent =
         (photo.caption || "No caption") + " · " +
-        (photo.display_mode === "full-width"
-          ? "Full-width" : "Inline");
+        (photo.display_mode === "full-width" ? "Full-width" : "Inline");
       item.append(description);
 
       const remove = document.createElement("button");
@@ -554,14 +601,11 @@
 
       remove.addEventListener("click", async () => {
         if (!confirm("Remove this photograph from the journal?")) return;
-
         remove.disabled = true;
 
         const { error: deleteError } = await supabaseClient
-          .from("journal_entry_photos")
-          .delete()
-          .eq("id", photo.id)
-          .eq("entry_id", entryId);
+          .from("journal_entry_photos").delete()
+          .eq("id", photo.id).eq("entry_id", entryId);
 
         if (deleteError) {
           photoMessage("Couldn't remove the photo details.");
@@ -570,11 +614,9 @@
         }
 
         const { error: storageError } = await supabaseClient.storage
-          .from("journal-photos")
-          .remove([photo.storage_path]);
+          .from("journal-photos").remove([photo.storage_path]);
 
         await loadEntryPhotos(entryId);
-
         photoMessage(storageError
           ? "Photo removed from the entry; storage cleanup needs attention."
           : "Photograph removed.");
@@ -584,25 +626,6 @@
       entryPhotos.append(item);
     }
   }
-
-  // Show photo controls when an existing entry is selected for editing.
-  entryList.addEventListener("click", () => {
-    const id = document.getElementById("entry-id").value;
-    if (!id) return;
-
-    photoControls.hidden = false;
-    photoMessage("Loading photographs…");
-    loadEntryPhotos(id);
-  });
-
-  // Hide the controls when starting a new draft.
-  document.getElementById("new-entry").addEventListener("click", () => {
-    photoControls.hidden = true;
-    entryPhotos.replaceChildren();
-    photoFile.value = "";
-    photoCaption.value = "";
-    photoMessage("Save or open a journal entry to add photographs.");
-  });
 
   photoUploadButton.addEventListener("click", async () => {
     if (!currentUser) {
@@ -617,7 +640,6 @@
       photoMessage("Save your draft, then select Edit entry before uploading.");
       return;
     }
-
     if (!file) {
       photoMessage("Choose a photograph from your computer first.");
       return;
@@ -634,7 +656,6 @@
       photoMessage("Please choose a JPEG, PNG, WebP or GIF image.");
       return;
     }
-
     if (file.size > 10 * 1024 * 1024) {
       photoMessage("Please choose an image smaller than 10 MB.");
       return;
@@ -642,38 +663,29 @@
 
     photoUploadButton.disabled = true;
     photoMessage("Uploading photograph…");
-
     let storagePath = "";
 
     try {
       const { data: existing, error: listError } = await supabaseClient
-        .from("journal_entry_photos")
-        .select("sort_order")
+        .from("journal_entry_photos").select("sort_order")
         .eq("entry_id", entryId)
-        .order("sort_order", { ascending: false })
-        .limit(1);
+        .order("sort_order", { ascending: false }).limit(1);
 
       if (listError) throw listError;
 
-      const nextOrder = existing?.length
-        ? existing[0].sort_order + 1 : 0;
-
-      const uniqueName = crypto.randomUUID() + "." + extensions[file.type];
-      storagePath = currentUser.id + "/" + entryId + "/" + uniqueName;
+      const nextOrder = existing?.length ? existing[0].sort_order + 1 : 0;
+      storagePath = currentUser.id + "/" + entryId + "/" +
+        crypto.randomUUID() + "." + extensions[file.type];
 
       const { error: uploadError } = await supabaseClient.storage
-        .from("journal-photos")
-        .upload(storagePath, file, {
-          contentType: file.type,
-          cacheControl: "3600",
-          upsert: false
+        .from("journal-photos").upload(storagePath, file, {
+          contentType: file.type, cacheControl: "3600", upsert: false
         });
 
       if (uploadError) throw uploadError;
 
       const { error: metadataError } = await supabaseClient
-        .from("journal_entry_photos")
-        .insert({
+        .from("journal_entry_photos").insert({
           entry_id: entryId,
           storage_path: storagePath,
           caption: photoCaption.value.trim(),
@@ -682,17 +694,14 @@
         });
 
       if (metadataError) {
-        await supabaseClient.storage
-          .from("journal-photos")
-          .remove([storagePath]);
+        await supabaseClient.storage.from("journal-photos").remove([storagePath]);
         throw metadataError;
       }
 
       photoFile.value = "";
       photoCaption.value = "";
-
       await loadEntryPhotos(entryId);
-      photoMessage("Photograph uploaded successfully. It will appear publicly only when its entry is published.");
+      photoMessage("Photograph uploaded. It appears publicly only when its entry is published.");
     } catch (error) {
       console.error("Journal photo upload error:", error);
       photoMessage("Upload failed. Please try again and check your storage policies if it persists.");
@@ -701,8 +710,289 @@
     }
   });
 
+  // VIDEOS — uploads and YouTube links.
+  const videoControls = document.getElementById("video-controls");
+  const videoStatus = document.getElementById("video-status");
+  const videoSource = document.getElementById("video-source");
+  const videoUploadFields = document.getElementById("video-upload-fields");
+  const youtubeFields = document.getElementById("youtube-fields");
+  const videoFile = document.getElementById("video-file");
+  const youtubeUrl = document.getElementById("youtube-url");
+  const videoCaption = document.getElementById("video-caption");
+  const videoDisplayMode = document.getElementById("video-display-mode");
+  const videoAddButton = document.getElementById("upload-video");
+  const entryVideos = document.getElementById("entry-videos");
+
+  function videoMessage(text) {
+    videoStatus.textContent = text;
+  }
+
+  videoSource.addEventListener("change", () => {
+    const useYouTube = videoSource.value === "youtube";
+    videoUploadFields.hidden = useYouTube;
+    youtubeFields.hidden = !useYouTube;
+  });
+
+  function getYouTubeId(value) {
+    try {
+      const url = new URL(value.trim());
+      let id = "";
+
+      if (url.hostname === "youtu.be" || url.hostname === "www.youtu.be") {
+        id = url.pathname.split("/").filter(Boolean)[0] || "";
+      } else if (
+        ["youtube.com", "www.youtube.com", "m.youtube.com"].includes(url.hostname)
+      ) {
+        if (url.pathname === "/watch") {
+          id = url.searchParams.get("v") || "";
+        } else {
+          const parts = url.pathname.split("/").filter(Boolean);
+          if (["embed", "shorts", "live"].includes(parts[0])) id = parts[1] || "";
+        }
+      }
+
+      return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function loadEntryVideos(entryId) {
+    entryVideos.replaceChildren();
+    if (!entryId || !currentUser) return;
+
+    const { data, error } = await supabaseClient
+      .from("journal_entry_videos")
+      .select("id,entry_id,source_type,storage_path,video_url,youtube_id,caption,display_mode,sort_order")
+      .eq("entry_id", entryId)
+      .order("sort_order", { ascending: true });
+
+    if (error) {
+      videoMessage("Couldn't load video details. Please check the video database setup.");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      videoMessage("No videos added to this entry yet.");
+      return;
+    }
+
+    videoMessage(data.length + " video(s) attached to this entry.");
+
+    for (const video of data) {
+      const item = document.createElement("div");
+      item.className = "entry";
+
+      if (video.source_type === "youtube") {
+        const link = document.createElement("a");
+        link.href = "https://www.youtube.com/watch?v=" +
+          encodeURIComponent(video.youtube_id);
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Open YouTube video";
+        item.append(link);
+      } else {
+        const { data: signed, error: signError } = await supabaseClient.storage
+          .from("journal-videos")
+          .createSignedUrl(video.storage_path, 3600);
+
+        if (!signError && signed?.signedUrl) {
+          const player = document.createElement("video");
+          player.src = signed.signedUrl;
+          player.controls = true;
+          player.preload = "metadata";
+          player.className = "video-preview" +
+            (video.display_mode === "full-width" ? " full-width" : "");
+          item.append(player);
+        } else {
+          const note = document.createElement("p");
+          note.className = "muted";
+          note.textContent = "Preview unavailable.";
+          item.append(note);
+        }
+      }
+
+      const description = document.createElement("p");
+      description.className = "muted";
+      description.textContent =
+        (video.caption || "No caption") + " · " +
+        (video.source_type === "youtube" ? "YouTube" : "Uploaded video") +
+        " · " + (video.display_mode === "full-width" ? "Full-width" : "Inline");
+      item.append(description);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "secondary";
+      remove.textContent = "Remove video";
+
+      remove.addEventListener("click", async () => {
+        if (!confirm("Remove this video from the journal?")) return;
+        remove.disabled = true;
+
+        const { error: deleteError } = await supabaseClient
+          .from("journal_entry_videos").delete()
+          .eq("id", video.id).eq("entry_id", entryId);
+
+        if (deleteError) {
+          videoMessage("Couldn't remove the video record.");
+          remove.disabled = false;
+          return;
+        }
+
+        let storageError = null;
+        if (video.source_type === "upload") {
+          const result = await supabaseClient.storage
+            .from("journal-videos").remove([video.storage_path]);
+          storageError = result.error;
+        }
+
+        await loadEntryVideos(entryId);
+        videoMessage(storageError
+          ? "Video record removed; storage cleanup needs attention."
+          : "Video removed.");
+      });
+
+      item.append(remove);
+      entryVideos.append(item);
+    }
+  }
+
+  videoAddButton.addEventListener("click", async () => {
+    if (!currentUser) {
+      videoMessage("Please sign in before adding videos.");
+      return;
+    }
+
+    const entryId = document.getElementById("entry-id").value;
+    if (!entryId) {
+      videoMessage("Save your draft, then select Edit entry before adding videos.");
+      return;
+    }
+
+    videoAddButton.disabled = true;
+    let storagePath = "";
+
+    try {
+      const { data: existing, error: listError } = await supabaseClient
+        .from("journal_entry_videos").select("sort_order")
+        .eq("entry_id", entryId)
+        .order("sort_order", { ascending: false }).limit(1);
+
+      if (listError) throw listError;
+      const nextOrder = existing?.length ? existing[0].sort_order + 1 : 0;
+      const caption = videoCaption.value.trim();
+      const displayMode = videoDisplayMode.value;
+
+      if (videoSource.value === "youtube") {
+        const urlValue = youtubeUrl.value.trim();
+        const youtubeId = getYouTubeId(urlValue);
+
+        if (!youtubeId) {
+          videoMessage("Please enter a valid YouTube video URL.");
+          return;
+        }
+
+        videoMessage("Adding YouTube video…");
+
+        const { error } = await supabaseClient
+          .from("journal_entry_videos").insert({
+            entry_id: entryId,
+            source_type: "youtube",
+            video_url: "https://www.youtube.com/watch?v=" + youtubeId,
+            youtube_id: youtubeId,
+            storage_path: null,
+            caption,
+            display_mode: displayMode,
+            sort_order: nextOrder
+          });
+
+        if (error) throw error;
+      } else {
+        const file = videoFile.files[0];
+
+        if (!file) {
+          videoMessage("Choose a video file first.");
+          return;
+        }
+
+        const extensions = {
+          "video/mp4": "mp4",
+          "video/webm": "webm",
+          "video/quicktime": "mov"
+        };
+
+        if (!extensions[file.type]) {
+          videoMessage("Please choose an MP4, WebM or QuickTime video.");
+          return;
+        }
+
+        if (file.size > 50 * 1024 * 1024) {
+          videoMessage("This video exceeds 50 MB. Please compress it or use a YouTube link.");
+          return;
+        }
+
+        videoMessage("Uploading video…");
+
+        storagePath = currentUser.id + "/" + entryId + "/" +
+          crypto.randomUUID() + "." + extensions[file.type];
+
+        const { error: uploadError } = await supabaseClient.storage
+          .from("journal-videos").upload(storagePath, file, {
+            contentType: file.type,
+            cacheControl: "3600",
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { error: metadataError } = await supabaseClient
+          .from("journal_entry_videos").insert({
+            entry_id: entryId,
+            source_type: "upload",
+            storage_path: storagePath,
+            video_url: null,
+            youtube_id: null,
+            caption,
+            display_mode: displayMode,
+            sort_order: nextOrder
+          });
+
+        if (metadataError) {
+          await supabaseClient.storage.from("journal-videos").remove([storagePath]);
+          storagePath = "";
+          throw metadataError;
+        }
+      }
+
+      videoFile.value = "";
+      youtubeUrl.value = "";
+      videoCaption.value = "";
+      await loadEntryVideos(entryId);
+      videoMessage("Video added. It will appear publicly only when its entry is published.");
+    } catch (error) {
+      console.error("Journal video add error:", error);
+      videoMessage("Couldn't add the video. Check the video storage policies and database setup.");
+    } finally {
+      videoAddButton.disabled = false;
+    }
+  });
+
+  // Selecting an entry opens both media panels.
+  entryList.addEventListener("click", () => {
+    const id = document.getElementById("entry-id").value;
+    if (!id) return;
+
+    photoControls.hidden = false;
+    videoControls.hidden = false;
+    photoMessage("Loading photographs…");
+    videoMessage("Loading videos…");
+    loadEntryPhotos(id);
+    loadEntryVideos(id);
+  });
+
   init();
 </script>
 </body>
 </html>
+
 
