@@ -317,7 +317,8 @@
       }).format(date);
     }
 
-    function createEntry(entry) {
+    
+    function createEntry(entry, photos = []) {
       const article = document.createElement("article");
       article.className = "entry";
 
@@ -333,6 +334,40 @@
       content.textContent = entry.content || "";
 
       article.append(meta, heading, content);
+
+      photos.forEach(photo => {
+        const figure = document.createElement("figure");
+        figure.style.width = photo.display_mode === "full-width"
+          ? "100%" : "min(100%, 560px)";
+        figure.style.margin = "2rem auto";
+        figure.style.padding = "0";
+
+        const image = document.createElement("img");
+        image.src = SUPABASE_URL + "/storage/v1/object/" +
+          "journal-photos/" +
+          photo.storage_path.split("/")
+            .map(encodeURIComponent).join("/");
+        image.alt = photo.caption || "Photograph accompanying this reflection";
+        image.loading = "lazy";
+        image.style.display = "block";
+        image.style.width = "100%";
+        image.style.height = "auto";
+        image.style.borderRadius = "4px";
+
+        figure.append(image);
+
+        if (photo.caption) {
+          const caption = document.createElement("figcaption");
+          caption.textContent = photo.caption;
+          caption.style.marginTop = "0.75rem";
+          caption.style.fontSize = "0.9rem";
+          caption.style.opacity = "0.8";
+          figure.append(caption);
+        }
+
+        article.append(figure);
+      });
+
       return article;
     }
 
@@ -382,7 +417,25 @@
           return;
         }
 
-        data.forEach(entry => entriesEl.append(createEntry(entry)));
+    
+        const { data: photos, error: photosError } = await client.rpc(
+          "get_published_journal_photos"
+        );
+
+        if (photosError) {
+          console.error("Journal photo loading error:", photosError);
+        }
+
+        const publishedPhotos = photos || [];
+
+        data.forEach(entry => {
+          const entryPhotos = publishedPhotos.filter(
+            photo => photo.entry_id === entry.id
+          );
+
+          entriesEl.append(createEntry(entry, entryPhotos));
+        });
+
 
       } catch (error) {
   console.error("Journal loading error:", error);
