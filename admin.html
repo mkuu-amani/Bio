@@ -117,8 +117,48 @@
       </form>
     </div>
 
+    
+    <div class="panel" id="photo-panel">
+      <h2>Photographs</h2>
+      <p class="muted">
+        Save your entry as a draft first, then add photographs to it.
+        Choose a caption and how each image should appear in your journal.
+      </p>
+
+      <p id="photo-status" class="muted" aria-live="polite">
+        Save or open a journal entry to add photographs.
+      </p>
+
+      <div id="photo-controls" hidden>
+        <label for="photo-file">Choose a photograph</label>
+        <input
+          id="photo-file"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+        >
+
+        <label for="photo-caption">Photo caption (optional)</label>
+        <input
+          id="photo-caption"
+          maxlength="300"
+          placeholder="Add a caption…"
+        >
+
+        <label for="photo-display-mode">Display style</label>
+        <select id="photo-display-mode">
+          <option value="inline">Inline — within the article</option>
+          <option value="full-width">Full-width — cinematic image</option>
+        </select>
+
+        <button id="upload-photo" type="button">Upload photograph</button>
+      </div>
+
+      <div id="entry-photos"></div>
+    </div>
+
     <div class="panel">
       <h2>Your journal entries</h2>
+
       <p class="muted">
         Private entries are visible only to you. Published entries appear on your public journal.
       </p>
