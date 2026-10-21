@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -181,6 +182,53 @@
       overflow-wrap: anywhere;
     }
 
+    /* Photographs and videos share the same cinematic layout. */
+    .entry-media {
+      margin: 2rem auto;
+      padding: 0;
+    }
+
+    .entry-media.inline {
+      width: min(100%, 560px);
+    }
+
+    .entry-media.full-width {
+      width: 100%;
+    }
+
+    .entry-media img,
+    .entry-media video,
+    .entry-media iframe {
+      display: block;
+      width: 100%;
+      border: 0;
+      border-radius: 4px;
+    }
+
+    .entry-media img {
+      height: auto;
+    }
+
+    .entry-media video,
+    .entry-media iframe {
+      aspect-ratio: 16 / 9;
+      height: auto;
+      background: #000;
+    }
+
+    .entry-media video {
+      object-fit: contain;
+    }
+
+    .entry-media figcaption {
+      margin-top: .75rem;
+      color: #d0cec8;
+      font-size: .9rem;
+      line-height: 1.7;
+      opacity: .8;
+      overflow-wrap: anywhere;
+    }
+
     .empty {
       text-align: center;
       padding: 100px 20px 120px;
@@ -241,6 +289,8 @@
       .entries { padding: 10px 7% 65px; }
       .entry { padding: 48px 0 52px; }
       .entry-content { font-size: 15px; line-height: 1.9; }
+      .entry-media { margin: 1.5rem auto; }
+      .entry-media figcaption { font-size: .85rem; }
       footer { padding: 25px 7%; }
     }
 
@@ -295,7 +345,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Use the same project URL and publishable key as admin.html.
+    // Keep these credentials consistent with admin.html.
     const SUPABASE_URL = "https://ayyxlmqkiakogpyvamhl.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
 
@@ -307,6 +357,7 @@
 
     function displayDate(value) {
       if (!value) return "A reflection";
+
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return "A reflection";
 
@@ -317,8 +368,15 @@
       }).format(date);
     }
 
-    
-    function createEntry(entry, photos = []) {
+    function createCaption(text) {
+      if (!text) return null;
+
+      const caption = document.createElement("figcaption");
+      caption.textContent = text;
+      return caption;
+    }
+
+    function createEntry(entry, photos = [], videos = []) {
       const article = document.createElement("article");
       article.className = "entry";
 
@@ -335,37 +393,160 @@
 
       article.append(meta, heading, content);
 
-      photos.forEach(photo => {
+      // Render videos belonging to this published entry.
+      videos.forEach(videoRow => {
         const figure = document.createElement("figure");
-        figure.style.width = photo.display_mode === "full-width"
-          ? "100%" : "min(100%, 560px)";
-        figure.style.margin = "2rem auto";
-        figure.style.padding = "0";
+        figure.className =
+          "entry-media " +
+          (videoRow.display_mode === "full-width"
+            ? "full-width"
+            : "inline");
+
+        if (videoRow.source_type === "upload") {
+          if (!videoRow.signedUrl) return;
+
+          const video = document.createElement("video");
+          video.src = videoRow.signedUrl;
+          video.controls = true;
+          video.playsInline = true;
+          video.preload = "metadata";
+          video.setAttribute("aria-label",
+            videoRow.caption || "Video accompanying this reflection");
+
+          figure.append(video);
+        } else if (videoRow.source_type === "youtube") {
+          // Only accept a valid 11-character YouTube video ID.
+          const youtubeId = String(videoRow.youtube_id || "");
+
+          if (!/^[A-Za-z0-9_-]{11}$/.test(youtubeId)) return;
+
+          const iframe = document.createElement("iframe");
+          iframe.src =
+            "https://www.youtube-nocookie.com/embed/" +
+            encodeURIComponent(youtubeId);
+          iframe.title =
+            videoRow.caption || "YouTube video accompanying this reflection";
+          iframe.loading = "lazy";
+          iframe.referrerPolicy = "strict-origin-when-cross-origin";
+          iframe.allow =
+            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+          iframe.allowFullscreen = true;
+
+          figure.append(iframe);
+        } else {
+          return;
+        }
+
+        const caption = createCaption(videoRow.caption);
+        if (caption) figure.append(caption);
+
+        article.append(figure);
+      });
+
+      // Render photographs using the existing private-bucket URL workflow.
+      photos.forEach(photo => {
+        if (!photo.signedUrl) return;
+
+        const figure = document.createElement("figure");
+        figure.className =
+          "entry-media " +
+          (photo.display_mode === "full-width"
+            ? "full-width"
+            : "inline");
 
         const image = document.createElement("img");
-        image.src = photo.signedUrl || "";
-        image.alt = photo.caption || "Photograph accompanying this reflection";
+        image.src = photo.signedUrl;
+        image.alt =
+          photo.caption || "Photograph accompanying this reflection";
         image.loading = "lazy";
-        image.style.display = "block";
-        image.style.width = "100%";
-        image.style.height = "auto";
-        image.style.borderRadius = "4px";
+        image.decoding = "async";
 
         figure.append(image);
 
-        if (photo.caption) {
-          const caption = document.createElement("figcaption");
-          caption.textContent = photo.caption;
-          caption.style.marginTop = "0.75rem";
-          caption.style.fontSize = "0.9rem";
-          caption.style.opacity = "0.8";
-          figure.append(caption);
-        }
+        const caption = createCaption(photo.caption);
+        if (caption) figure.append(caption);
 
         article.append(figure);
       });
 
       return article;
+    }
+
+    async function loadSignedPhotos(client, photoRows) {
+      return Promise.all(
+        (photoRows || []).map(async photo => {
+          try {
+            const { data: signed, error } = await client.storage
+              .from("journal-photos")
+              .createSignedUrl(photo.storage_path, 3600);
+
+            if (error || !signed?.signedUrl) {
+              console.error("Could not create photo URL:", error);
+              return null;
+            }
+
+            return { ...photo, signedUrl: signed.signedUrl };
+          } catch (error) {
+            console.error("Could not create photo URL:", error);
+            return null;
+          }
+        })
+      ).then(results => results.filter(Boolean));
+    }
+
+    async function loadSignedVideos(client, videoRows) {
+      return Promise.all(
+        (videoRows || []).map(async videoRow => {
+          // YouTube embeds do not need a Storage signed URL.
+          if (videoRow.source_type === "youtube") {
+            return videoRow;
+          }
+
+          if (
+            videoRow.source_type !== "upload" ||
+            !videoRow.storage_path
+          ) {
+            return null;
+          }
+
+          try {
+            const { data: signed, error } = await client.storage
+              .from("journal-videos")
+              .createSignedUrl(videoRow.storage_path, 3600);
+
+            if (error || !signed?.signedUrl) {
+              console.error("Could not create video URL:", error);
+              return null;
+            }
+
+            return { ...videoRow, signedUrl: signed.signedUrl };
+          } catch (error) {
+            console.error("Could not create video URL:", error);
+            return null;
+          }
+        })
+      ).then(results => results.filter(Boolean));
+    }
+
+    function showEmptyState() {
+      entriesEl.replaceChildren();
+
+      const empty = document.createElement("div");
+      empty.className = "empty";
+
+      const mark = document.createElement("div");
+      mark.className = "empty-mark";
+      mark.textContent = "—";
+
+      const heading = document.createElement("h3");
+      heading.textContent = "The story is unfolding.";
+
+      const message = document.createElement("p");
+      message.textContent =
+        "New reflections will find their place here in time.";
+
+      empty.append(mark, heading, message);
+      entriesEl.append(empty);
     }
 
     async function loadJournal() {
@@ -393,63 +574,31 @@
         if (entriesError) throw entriesError;
 
         if (!entries || entries.length === 0) {
-          entriesEl.replaceChildren();
-
-          const empty = document.createElement("div");
-          empty.className = "empty";
-
-          const mark = document.createElement("div");
-          mark.className = "empty-mark";
-          mark.textContent = "—";
-
-          const heading = document.createElement("h3");
-          heading.textContent = "The story is unfolding.";
-
-          const message = document.createElement("p");
-          message.textContent =
-            "New reflections will find their place here in time.";
-
-          empty.append(mark, heading, message);
-          entriesEl.append(empty);
+          showEmptyState();
           return;
         }
 
-        // Show the entries even if the optional photo query fails.
-        const { data: photoRows, error: photosError } = await client.rpc(
-          "get_published_journal_photos"
-        );
+        // Media queries are independent: a media error must not hide entries.
+        const [
+          { data: photoRows, error: photosError },
+          { data: videoRows, error: videosError }
+        ] = await Promise.all([
+          client.rpc("get_published_journal_photos"),
+          client.rpc("get_published_journal_videos")
+        ]);
 
         if (photosError) {
           console.error("Journal photo loading error:", photosError);
         }
 
-        const publishedPhotos = photoRows || [];
+        if (videosError) {
+          console.error("Journal video loading error:", videosError);
+        }
 
-        // Private-bucket photos need temporary signed URLs.
-        const photosWithSignedUrls = await Promise.all(
-          publishedPhotos.map(async photo => {
-            try {
-              const { data: signed, error: signError } = await client.storage
-                .from("journal-photos")
-                .createSignedUrl(photo.storage_path, 3600);
-
-              if (signError || !signed?.signedUrl) {
-                console.error(
-                  "Could not create photo URL:",
-                  signError || "No signed URL returned"
-                );
-                return null;
-              }
-
-              return { ...photo, signedUrl: signed.signedUrl };
-            } catch (photoError) {
-              console.error("Could not create photo URL:", photoError);
-              return null;
-            }
-          })
-        );
-
-        const usablePhotos = photosWithSignedUrls.filter(Boolean);
+        const [usablePhotos, usableVideos] = await Promise.all([
+          loadSignedPhotos(client, photosError ? [] : photoRows),
+          loadSignedVideos(client, videosError ? [] : videoRows)
+        ]);
 
         entriesEl.replaceChildren();
 
@@ -457,7 +606,14 @@
           const entryPhotos = usablePhotos.filter(
             photo => photo.entry_id === entry.id
           );
-          entriesEl.append(createEntry(entry, entryPhotos));
+
+          const entryVideos = usableVideos.filter(
+            video => video.entry_id === entry.id
+          );
+
+          entriesEl.append(
+            createEntry(entry, entryPhotos, entryVideos)
+          );
         });
       } catch (error) {
         console.error("Journal loading error:", error);
