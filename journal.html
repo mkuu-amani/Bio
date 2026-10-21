@@ -1,5 +1,4 @@
-
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -182,7 +181,6 @@
       overflow-wrap: anywhere;
     }
 
-    /* Photographs and videos share the same cinematic layout. */
     .entry-media {
       margin: 2rem auto;
       padding: 0;
@@ -345,9 +343,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Keep these credentials consistent with admin.html.
-    const SUPABASE_URL = "https://ayyxlmqkiakogpyvamhl.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
+    const SUPABASE_URL =
+      "https://ayyxlmqkiakogpyvamhl.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
 
     const entriesEl = document.getElementById("entries");
     const statusEl = document.getElementById("status");
@@ -359,7 +359,10 @@
       if (!value) return "A reflection";
 
       const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return "A reflection";
+
+      if (Number.isNaN(date.getTime())) {
+        return "A reflection";
+      }
 
       return new Intl.DateTimeFormat("en-GB", {
         day: "numeric",
@@ -373,6 +376,7 @@
 
       const caption = document.createElement("figcaption");
       caption.textContent = text;
+
       return caption;
     }
 
@@ -396,6 +400,7 @@
       // Render videos belonging to this published entry.
       videos.forEach(videoRow => {
         const figure = document.createElement("figure");
+
         figure.className =
           "entry-media " +
           (videoRow.display_mode === "full-width"
@@ -410,77 +415,117 @@
           video.controls = true;
           video.playsInline = true;
           video.preload = "metadata";
-          video.setAttribute("aria-label",
-            videoRow.caption || "Video accompanying this reflection");
+
+          video.setAttribute(
+            "aria-label",
+            videoRow.caption ||
+              "Video accompanying this reflection"
+          );
 
           figure.append(video);
+
         } else if (videoRow.source_type === "youtube") {
-          // Only accept a valid 11-character YouTube video ID.
           const youtubeId = String(videoRow.youtube_id || "");
+          const storedUrl = String(videoRow.video_url || "");
 
-          if (!/^[A-Za-z0-9_-]{11}$/.test(youtubeId)) return;
+          let embedUrl;
+          let isPlaylist = false;
 
-          
-const iframe = document.createElement("iframe");
+          try {
+            const parsedUrl = new URL(storedUrl);
+            const hostname = parsedUrl.hostname.toLowerCase();
 
-let embedUrl;
+            const isYouTubeHost =
+              hostname === "youtube.com" ||
+              hostname.endsWith(".youtube.com");
 
-try {
-  const storedUrl = new URL(videoRow.video_url || "");
-  const isPlaylist = storedUrl.pathname === "/playlist";
+            isPlaylist =
+              isYouTubeHost &&
+              parsedUrl.pathname === "/playlist";
 
-  if (isPlaylist) {
-    const playlistId = videoRow.youtube_id || "";
+            if (isPlaylist) {
+              // Playlist IDs are not required to be 11 characters.
+              const playlistId =
+                parsedUrl.searchParams.get("list") || youtubeId;
 
-    if (!/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) {
-      return;
-    }
+              if (!/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) {
+                console.error(
+                  "Invalid YouTube playlist ID:",
+                  playlistId
+                );
+                return;
+              }
 
-    embedUrl =
-      "https://www.youtube-nocookie.com/embed/videoseries?list=" +
-      encodeURIComponent(playlistId);
+              embedUrl =
+                "https://www.youtube-nocookie.com/embed/videoseries?list=" +
+                encodeURIComponent(playlistId);
 
-  } else {
-    if (!/^[A-Za-z0-9_-]{11}$/.test(youtubeId || "")) {
-      return;
-    }
+            } else {
+              if (!/^[A-Za-z0-9_-]{11}$/.test(youtubeId)) {
+                console.error(
+                  "Invalid YouTube video ID:",
+                  youtubeId
+                );
+                return;
+              }
 
-    embedUrl =
-      "https://www.youtube-nocookie.com/embed/" +
-      encodeURIComponent(youtubeId);
-  }
-} catch {
-  return;
-}
+              embedUrl =
+                "https://www.youtube-nocookie.com/embed/" +
+                encodeURIComponent(youtubeId);
+            }
 
-iframe.src = embedUrl;
-iframe.title = videoRow.caption ||
-  (embedUrl.includes("/videoseries?")
-    ? "YouTube playlist accompanying this reflection"
-    : "YouTube video accompanying this reflection");
-iframe.loading = "lazy";
-iframe.referrerPolicy = "strict-origin-when-cross-origin";
-iframe.allow =
-  "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-iframe.allowFullscreen = true;
+          } catch (error) {
+            console.error(
+              "Could not prepare YouTube embed:",
+              error,
+              videoRow
+            );
+            return;
+          }
 
+          const iframe = document.createElement("iframe");
+          iframe.src = embedUrl;
+
+          iframe.title =
+            videoRow.caption ||
+            (isPlaylist
+              ? "YouTube playlist accompanying this reflection"
+              : "YouTube video accompanying this reflection");
+
+          iframe.loading = "lazy";
+          iframe.referrerPolicy =
+            "strict-origin-when-cross-origin";
+
+          iframe.allow =
+            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+
+          iframe.allowFullscreen = true;
 
           figure.append(iframe);
+
         } else {
+          console.warn(
+            "Unsupported journal video source:",
+            videoRow.source_type
+          );
           return;
         }
 
         const caption = createCaption(videoRow.caption);
-        if (caption) figure.append(caption);
+
+        if (caption) {
+          figure.append(caption);
+        }
 
         article.append(figure);
       });
 
-      // Render photographs using the existing private-bucket URL workflow.
+      // Render photographs using signed URLs from the private bucket.
       photos.forEach(photo => {
         if (!photo.signedUrl) return;
 
         const figure = document.createElement("figure");
+
         figure.className =
           "entry-media " +
           (photo.display_mode === "full-width"
@@ -488,16 +533,22 @@ iframe.allowFullscreen = true;
             : "inline");
 
         const image = document.createElement("img");
+
         image.src = photo.signedUrl;
         image.alt =
-          photo.caption || "Photograph accompanying this reflection";
+          photo.caption ||
+          "Photograph accompanying this reflection";
+
         image.loading = "lazy";
         image.decoding = "async";
 
         figure.append(image);
 
         const caption = createCaption(photo.caption);
-        if (caption) figure.append(caption);
+
+        if (caption) {
+          figure.append(caption);
+        }
 
         article.append(figure);
       });
@@ -506,7 +557,7 @@ iframe.allowFullscreen = true;
     }
 
     async function loadSignedPhotos(client, photoRows) {
-      return Promise.all(
+      const results = await Promise.all(
         (photoRows || []).map(async photo => {
           try {
             const { data: signed, error } = await client.storage
@@ -514,23 +565,35 @@ iframe.allowFullscreen = true;
               .createSignedUrl(photo.storage_path, 3600);
 
             if (error || !signed?.signedUrl) {
-              console.error("Could not create photo URL:", error);
+              console.error(
+                "Could not create photo URL:",
+                error
+              );
               return null;
             }
 
-            return { ...photo, signedUrl: signed.signedUrl };
+            return {
+              ...photo,
+              signedUrl: signed.signedUrl
+            };
+
           } catch (error) {
-            console.error("Could not create photo URL:", error);
+            console.error(
+              "Could not create photo URL:",
+              error
+            );
             return null;
           }
         })
-      ).then(results => results.filter(Boolean));
+      );
+
+      return results.filter(Boolean);
     }
 
     async function loadSignedVideos(client, videoRows) {
-      return Promise.all(
+      const results = await Promise.all(
         (videoRows || []).map(async videoRow => {
-          // YouTube embeds do not need a Storage signed URL.
+          // YouTube embeds do not require a Storage signed URL.
           if (videoRow.source_type === "youtube") {
             return videoRow;
           }
@@ -539,6 +602,10 @@ iframe.allowFullscreen = true;
             videoRow.source_type !== "upload" ||
             !videoRow.storage_path
           ) {
+            console.warn(
+              "Invalid uploaded video record:",
+              videoRow
+            );
             return null;
           }
 
@@ -548,17 +615,29 @@ iframe.allowFullscreen = true;
               .createSignedUrl(videoRow.storage_path, 3600);
 
             if (error || !signed?.signedUrl) {
-              console.error("Could not create video URL:", error);
+              console.error(
+                "Could not create video URL:",
+                error
+              );
               return null;
             }
 
-            return { ...videoRow, signedUrl: signed.signedUrl };
+            return {
+              ...videoRow,
+              signedUrl: signed.signedUrl
+            };
+
           } catch (error) {
-            console.error("Could not create video URL:", error);
+            console.error(
+              "Could not create video URL:",
+              error
+            );
             return null;
           }
         })
-      ).then(results => results.filter(Boolean));
+      );
+
+      return results.filter(Boolean);
     }
 
     function showEmptyState() {
@@ -592,7 +671,9 @@ iframe.allowFullscreen = true;
           SUPABASE_PUBLISHABLE_KEY.includes("YOUR_") ||
           SUPABASE_PUBLISHABLE_KEY.includes("PASTE_")
         ) {
-          throw new Error("The journal connection has not been configured.");
+          throw new Error(
+            "The journal connection has not been configured."
+          );
         }
 
         const client = window.supabase.createClient(
@@ -600,18 +681,22 @@ iframe.allowFullscreen = true;
           SUPABASE_PUBLISHABLE_KEY
         );
 
-        const { data: entries, error: entriesError } = await client.rpc(
-          "get_published_journal_entries"
-        );
+        const {
+          data: entries,
+          error: entriesError
+        } = await client.rpc("get_published_journal_entries");
 
-        if (entriesError) throw entriesError;
+        if (entriesError) {
+          throw entriesError;
+        }
 
         if (!entries || entries.length === 0) {
           showEmptyState();
           return;
         }
 
-        // Media queries are independent: a media error must not hide entries.
+        // Load photos and videos independently so media errors
+        // do not prevent the written entries from appearing.
         const [
           { data: photoRows, error: photosError },
           { data: videoRows, error: videosError }
@@ -621,16 +706,28 @@ iframe.allowFullscreen = true;
         ]);
 
         if (photosError) {
-          console.error("Journal photo loading error:", photosError);
+          console.error(
+            "Journal photo loading error:",
+            photosError
+          );
         }
 
         if (videosError) {
-          console.error("Journal video loading error:", videosError);
+          console.error(
+            "Journal video loading error:",
+            videosError
+          );
         }
 
         const [usablePhotos, usableVideos] = await Promise.all([
-          loadSignedPhotos(client, photosError ? [] : photoRows),
-          loadSignedVideos(client, videosError ? [] : videoRows)
+          loadSignedPhotos(
+            client,
+            photosError ? [] : photoRows
+          ),
+          loadSignedVideos(
+            client,
+            videosError ? [] : videoRows
+          )
         ]);
 
         entriesEl.replaceChildren();
@@ -648,8 +745,10 @@ iframe.allowFullscreen = true;
             createEntry(entry, entryPhotos, entryVideos)
           );
         });
+
       } catch (error) {
         console.error("Journal loading error:", error);
+
         entriesEl.replaceChildren();
 
         const message = document.createElement("p");
