@@ -379,8 +379,9 @@
         data.forEach(entry => entriesEl.append(createEntry(entry)));
 
       } catch (error) {
-        console.error("Journal loading error:", error);
-        entriesEl.replaceChildren();
+  console.error("Journal loading error:", error);
+  alert("Journal error: " + (error.message || JSON.stringify(error)));
+  entriesEl.replaceChildren();
 
         const message = document.createElement("p");
         message.className = "status";
