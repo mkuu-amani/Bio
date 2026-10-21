@@ -475,6 +475,232 @@
     else message("You've signed out.");
   });
 
+  // Still Becoming — private journal photo uploads
+  const photoControls = document.getElementById("photo-controls");
+  const photoStatus = document.getElementById("photo-status");
+  const photoFile = document.getElementById("photo-file");
+  const photoCaption = document.getElementById("photo-caption");
+  const photoDisplayMode = document.getElementById("photo-display-mode");
+  const photoUploadButton = document.getElementById("upload-photo");
+  const entryPhotos = document.getElementById("entry-photos");
+
+  function photoMessage(text) {
+    photoStatus.textContent = text;
+  }
+
+  function photoObjectUrl(path) {
+    return SUPABASE_URL + "/storage/v1/object/" +
+      "journal-photos/" +
+      path.split("/").map(encodeURIComponent).join("/");
+  }
+
+  async function loadEntryPhotos(entryId) {
+    entryPhotos.replaceChildren();
+
+    if (!entryId || !currentUser) return;
+
+    const { data, error } = await supabaseClient
+      .from("journal_entry_photos")
+      .select("id,entry_id,storage_path,caption,display_mode,sort_order")
+      .eq("entry_id", entryId)
+      .order("sort_order", { ascending: true });
+
+    if (error) {
+      photoMessage("Couldn't load photo details. Please try again.");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      photoMessage("No photographs added to this entry yet.");
+      return;
+    }
+
+    photoMessage(data.length + " photograph(s) attached to this entry.");
+
+    for (const photo of data) {
+      const item = document.createElement("div");
+      item.className = "entry";
+
+      const { data: signed, error: signError } =
+        await supabaseClient.storage
+          .from("journal-photos")
+          .createSignedUrl(photo.storage_path, 3600);
+
+      if (!signError && signed?.signedUrl) {
+        const image = document.createElement("img");
+        image.src = signed.signedUrl;
+        image.alt = photo.caption || "Journal photograph";
+        image.style.width = photo.display_mode === "full-width"
+          ? "100%" : "min(100%, 560px)";
+        image.style.height = "auto";
+        image.style.display = "block";
+        image.style.margin = "12px 0";
+        image.style.borderRadius = "8px";
+        item.append(image);
+      }
+
+      const description = document.createElement("p");
+      description.className = "muted";
+      description.textContent =
+        (photo.caption || "No caption") + " · " +
+        (photo.display_mode === "full-width"
+          ? "Full-width" : "Inline");
+      item.append(description);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "secondary";
+      remove.textContent = "Remove photograph";
+
+      remove.addEventListener("click", async () => {
+        if (!confirm("Remove this photograph from the journal?")) return;
+
+        remove.disabled = true;
+
+        const { error: deleteError } = await supabaseClient
+          .from("journal_entry_photos")
+          .delete()
+          .eq("id", photo.id)
+          .eq("entry_id", entryId);
+
+        if (deleteError) {
+          photoMessage("Couldn't remove the photo details.");
+          remove.disabled = false;
+          return;
+        }
+
+        const { error: storageError } = await supabaseClient.storage
+          .from("journal-photos")
+          .remove([photo.storage_path]);
+
+        await loadEntryPhotos(entryId);
+
+        photoMessage(storageError
+          ? "Photo removed from the entry; storage cleanup needs attention."
+          : "Photograph removed.");
+      });
+
+      item.append(remove);
+      entryPhotos.append(item);
+    }
+  }
+
+  // Show photo controls when an existing entry is selected for editing.
+  entryList.addEventListener("click", () => {
+    const id = document.getElementById("entry-id").value;
+    if (!id) return;
+
+    photoControls.hidden = false;
+    photoMessage("Loading photographs…");
+    loadEntryPhotos(id);
+  });
+
+  // Hide the controls when starting a new draft.
+  document.getElementById("new-entry").addEventListener("click", () => {
+    photoControls.hidden = true;
+    entryPhotos.replaceChildren();
+    photoFile.value = "";
+    photoCaption.value = "";
+    photoMessage("Save or open a journal entry to add photographs.");
+  });
+
+  photoUploadButton.addEventListener("click", async () => {
+    if (!currentUser) {
+      photoMessage("Please sign in before uploading photographs.");
+      return;
+    }
+
+    const entryId = document.getElementById("entry-id").value;
+    const file = photoFile.files[0];
+
+    if (!entryId) {
+      photoMessage("Save your draft, then select Edit entry before uploading.");
+      return;
+    }
+
+    if (!file) {
+      photoMessage("Choose a photograph from your computer first.");
+      return;
+    }
+
+    const extensions = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif"
+    };
+
+    if (!extensions[file.type]) {
+      photoMessage("Please choose a JPEG, PNG, WebP or GIF image.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      photoMessage("Please choose an image smaller than 10 MB.");
+      return;
+    }
+
+    photoUploadButton.disabled = true;
+    photoMessage("Uploading photograph…");
+
+    let storagePath = "";
+
+    try {
+      const { data: existing, error: listError } = await supabaseClient
+        .from("journal_entry_photos")
+        .select("sort_order")
+        .eq("entry_id", entryId)
+        .order("sort_order", { ascending: false })
+        .limit(1);
+
+      if (listError) throw listError;
+
+      const nextOrder = existing?.length
+        ? existing[0].sort_order + 1 : 0;
+
+      const uniqueName = crypto.randomUUID() + "." + extensions[file.type];
+      storagePath = currentUser.id + "/" + entryId + "/" + uniqueName;
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from("journal-photos")
+        .upload(storagePath, file, {
+          contentType: file.type,
+          cacheControl: "3600",
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { error: metadataError } = await supabaseClient
+        .from("journal_entry_photos")
+        .insert({
+          entry_id: entryId,
+          storage_path: storagePath,
+          caption: photoCaption.value.trim(),
+          display_mode: photoDisplayMode.value,
+          sort_order: nextOrder
+        });
+
+      if (metadataError) {
+        await supabaseClient.storage
+          .from("journal-photos")
+          .remove([storagePath]);
+        throw metadataError;
+      }
+
+      photoFile.value = "";
+      photoCaption.value = "";
+
+      await loadEntryPhotos(entryId);
+      photoMessage("Photograph uploaded successfully. It will appear publicly only when its entry is published.");
+    } catch (error) {
+      console.error("Journal photo upload error:", error);
+      photoMessage("Upload failed. Please try again and check your storage policies if it persists.");
+    } finally {
+      photoUploadButton.disabled = false;
+    }
+  });
+
   init();
 </script>
 </body>
