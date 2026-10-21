@@ -343,10 +343,7 @@
         figure.style.padding = "0";
 
         const image = document.createElement("img");
-        image.src = SUPABASE_URL + "/storage/v1/object/" +
-          "journal-photos/" +
-          photo.storage_path.split("/")
-            .map(encodeURIComponent).join("/");
+        image.src = photo.signedUrl || "";
         image.alt = photo.caption || "Photograph accompanying this reflection";
         image.loading = "lazy";
         image.style.display = "block";
@@ -427,9 +424,32 @@
         }
 
         const publishedPhotos = photos || [];
+                const photosWithSignedUrls = await Promise.all(
+          publishedPhotos.map(async photo => {
+            const { data: signed, error: signError } =
+              await client.storage
+                .from("journal-photos")
+                .createSignedUrl(photo.storage_path, 3600);
+
+            if (signError) {
+              console.error(
+                "Could not create photo URL:",
+                signError
+              );
+              return { ...photo, signedUrl: "" };
+            }
+
+            return {
+              ...photo,
+              signedUrl: signed.signedUrl
+            };
+          })
+        );
 
         data.forEach(entry => {
-          const entryPhotos = publishedPhotos.filter(
+         const entryPhotos = photosWithSignedUrls.filter(
+  photo => photo.entry_id === entry.id
+);
             photo => photo.entry_id === entry.id
           );
 
