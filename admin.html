@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Private Journal | Still Becoming</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101114;
+      --panel: #191b20;
+      --text: #f4f0e8;
+      --muted: #aaa9ae;
+      --accent: #d4b47a;
+      --line: #35363c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 system-ui, sans-serif;
+    }
+    main { max-width: 900px; margin: auto; padding: 36px 20px 70px; }
+    a { color: var(--accent); }
+    .eyebrow {
+      color: var(--accent); letter-spacing: .18em;
+      text-transform: uppercase; font-size: .75rem;
+    }
+    h1 { font-size: clamp(2.2rem, 7vw, 4rem); line-height: 1.1; margin: 10px 0; }
+    h2 { margin-top: 0; }
+    .muted { color: var(--muted); }
+    .panel {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 16px; padding: 24px; margin-top: 24px;
+    }
+    label { display: block; margin: 16px 0 6px; }
+    input, textarea {
+      display: block; width: 100%; padding: 13px;
+      background: #101114; color: var(--text);
+      border: 1px solid var(--line); border-radius: 8px;
+      font: inherit;
+    }
+    textarea { min-height: 240px; resize: vertical; }
+    button {
+      cursor: pointer; border: 0; border-radius: 8px;
+      background: var(--accent); color: #171717;
+      padding: 12px 18px; font: inherit; font-weight: 650;
+      margin: 12px 8px 0 0;
+    }
+    button.secondary {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--line);
+    }
+    button:disabled { opacity: .5; cursor: wait; }
+    .entry {
+      border-top: 1px solid var(--line); padding: 16px 0;
+      overflow-wrap: anywhere;
+    }
+    .entry h3 { margin: 0; }
+    #status { min-height: 1.5em; color: var(--accent); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Mkuu Amani · Private space</p>
+  <h1>Still Becoming.</h1>
+  <p class="muted">A private place to think, write and become.</p>
+
+  <section id="login" class="panel">
+    <h2>Your journal awaits.</h2>
+    <p class="muted">Request a secure sign-in link sent to your email.</p>
+    <form id="login-form">
+      <label for="email">Your email address</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <button id="login-button" type="submit">Email me a sign-in link</button>
+    </form>
+  </section>
+
+  <section id="workspace" hidden>
+    <div class="panel">
+      <p class="muted">Signed in as <span id="account"></span></p>
+      <button id="signout" class="secondary" type="button">Sign out</button>
+    </div>
+
+    <div class="panel">
+      <h2>Write privately</h2>
+      <form id="entry-form">
+        <input id="entry-id" type="hidden">
+        <label for="title">Title</label>
+        <input id="title" maxlength="200" required>
+        <label for="content">Your thoughts</label>
+        <textarea id="content" placeholder="Begin wherever you are…" required></textarea>
+        <button id="save-button" type="submit">Save private draft</button>
+        <button id="new-entry" class="secondary" type="button">New draft</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Your drafts</h2>
+      <div id="entries"></div>
+    </div>
+  </section>
+
+  <p id="status" role="status" aria-live="polite"></p>
+  <p class="muted"><a href="./">← Return to the public website</a></p>
+</main>
+
+<script>
+  // Replace these two placeholders with your Supabase project details.
+  // Use the Project URL and publishable key only. Never use the secret key.
+  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
+  const SUPABASE_PUBLISHABLE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+
+  const statusBox = document.getElementById("status");
+  const loginSection = document.getElementById("login");
+  const workspace = document.getElementById("workspace");
+  const entryList = document.getElementById("entries");
+  const entryForm = document.getElementById("entry-form");
+
+  let supabaseClient;
+  let currentUser;
+
+  function message(text) {
+    statusBox.textContent = text;
+  }
+
+  function init() {
+    if (
+      SUPABASE_URL.includes("PASTE_") ||
+      SUPABASE_PUBLISHABLE_KEY.includes("PASTE_")
+    ) {
+      message("Setup needed: add your Supabase Project URL and publishable key.");
+      return;
+    }
+
+    supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      setTimeout(() => showSession(session), 0);
+    });
+
+    supabaseClient.auth.getSession().then(({ data, error }) => {
+      if (error) message("Unable to check sign-in status. Please reload.");
+      else showSession(data.session);
+    });
+  }
+
+  async function showSession(session) {
+    currentUser = session?.user || null;
+    loginSection.hidden = !!currentUser;
+    workspace.hidden = !currentUser;
+
+    if (currentUser) {
+      document.getElementById("account").textContent = currentUser.email || "";
+      await loadEntries();
+    } else {
+      entryList.replaceChildren();
+    }
+  }
+
+  document.getElementById("login-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = document.getElementById("login-button");
+    button.disabled = true;
+    message("Requesting your sign-in email…");
+
+    try {
+      const { error } = await supabaseClient.auth.signInWithOtp({
+        email: document.getElementById("email").value.trim(),
+        options: {
+          emailRedirectTo: window.location.href.split("#")[0],
+          shouldCreateUser: false
+        }
+      });
+
+      message(error
+        ? "Could not send the link. Check the settings and try again."
+        : "If your account is eligible, a sign-in email will arrive shortly.");
+    } catch {
+      message("Something went wrong. Please try again.");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  async function loadEntries() {
+    const { data, error } = await supabaseClient
+      .from("journal_entries")
+      .select("id,title,content,status,created_at,updated_at")
+      .eq("user_id", currentUser.id)
+      .eq("status", "private")
+      .order("updated_at", { ascending: false });
+
+    entryList.replaceChildren();
+
+    if (error) {
+      message("Couldn't load drafts. Check your database policies.");
+      return;
+    }
+
+    if (!data.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "Your private journal is ready for its first entry.";
+      entryList.append(empty);
+      return;
+    }
+
+    data.forEach(entry => {
+      const article = document.createElement("article");
+      article.className = "entry";
+
+      const heading = document.createElement("h3");
+      heading.textContent = entry.title;
+
+      const date = document.createElement("p");
+      date.className = "muted";
+      date.textContent = new Date(entry.updated_at).toLocaleString();
+
+      const preview = document.createElement("p");
+      preview.textContent = entry.content.slice(0, 180);
+
+      const edit = document.createElement("button");
+      edit.className = "secondary";
+      edit.textContent = "Edit draft";
+      edit.addEventListener("click", () => {
+        document.getElementById("entry-id").value = entry.id;
+        document.getElementById("title").value = entry.title;
+        document.getElementById("content").value = entry.content;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      article.append(heading, date, preview, edit);
+      entryList.append(article);
+    });
+  }
+
+  entryForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (!currentUser) return;
+
+    const button = document.getElementById("save-button");
+    button.disabled = true;
+
+    const id = document.getElementById("entry-id").value;
+    const entry = {
+      user_id: currentUser.id,
+      title: document.getElementById("title").value.trim(),
+      content: document.getElementById("content").value,
+      status: "private",
+      updated_at: new Date().toISOString()
+    };
+
+    try {
+      let result;
+
+      if (id) {
+        result = await supabaseClient
+          .from("journal_entries")
+          .update(entry)
+          .eq("id", id)
+          .eq("user_id", currentUser.id);
+      } else {
+        result = await supabaseClient
+          .from("journal_entries")
+          .insert(entry);
+      }
+
+      if (result.error) {
+        message("Draft wasn't saved. Check your connection and database policies.");
+      } else {
+        message("Private draft saved.");
+        entryForm.reset();
+        document.getElementById("entry-id").value = "";
+        await loadEntries();
+      }
+    } catch {
+      message("Couldn't save your draft. Please try again.");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  document.getElementById("new-entry").addEventListener("click", () => {
+    entryForm.reset();
+    document.getElementById("entry-id").value = "";
+    message("");
+  });
+
+  document.getElementById("signout").addEventListener("click", async () => {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) message("Sign-out failed. Please try again.");
+    else message("You've signed out.");
+  });
+
+  init();
+</script>
+</body>
+</html>
