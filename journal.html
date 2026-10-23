@@ -44,9 +44,9 @@
     .navlink:hover { color: var(--gold); }
 
     .hero {
-      min-height: 40vh;
+      min-height: 42vh;
       display: flex; align-items: flex-end;
-      padding: 120px 8% 48px;
+      padding: 120px 8% 50px;
       background:
         linear-gradient(90deg, rgba(8,9,11,.82), rgba(8,9,11,.15)),
         linear-gradient(0deg, rgba(8,9,11,.95), transparent 70%),
@@ -58,66 +58,24 @@
     .hero-copy { max-width: 450px; color: #d1cec7; font-size: 15.5px; line-height: 1.85; }
 
     .intro {
-      padding: 26px 8% 18px;
+      padding: 28px 8% 20px;
       display: flex; justify-content: space-between; align-items: end; gap: 24px;
       border-bottom: 1px solid var(--line);
     }
     .intro h2 { font: 400 clamp(26px, 3.6vw, 36px)/1.2 var(--serif); margin: 6px 0 0; }
     .intro p { max-width: 290px; margin: 0; color: var(--muted); font-size: 13px; }
 
-    .scene {
-      position: relative;
-      min-height: 100vh;
-      padding: 36px 2% 70px;
-      background:
-        radial-gradient(ellipse at 50% 18%, rgba(90,70,45,.18), transparent 50%),
-        linear-gradient(180deg, #1c1713 0%, #0e0c0a 100%);
+    .journal-wrap {
+      padding: 40px 4% 80px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
     }
-    .table {
-      position: relative;
-      width: min(100%, 640px);
-      padding: 36px 20px 44px;
-      background:
-        linear-gradient(180deg, rgba(60,45,30,.28), rgba(25,18,12,.42)),
-        repeating-linear-gradient(
-          90deg,
-          #5a4632 0px,
-          #4e3c2a 2px,
-          #6b5340 6px,
-          #3f3024 10px,
-          #5c4836 14px,
-          #453628 18px,
-          #6a5240 22px,
-          #3a2c22 26px
-        );
-      border-radius: 4px;
-      box-shadow:
-        0 40px 70px rgba(0,0,0,.5),
-        0 6px 16px rgba(0,0,0,.35),
-        inset 0 1px 0 rgba(255,220,180,.14),
-        inset 0 -2px 3px rgba(0,0,0,.18);
-      display: flex;
-      justify-content: center;
-    }
-    .table::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 4px;
-      background:
-        linear-gradient(180deg, rgba(255,230,190,.05), transparent 20%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.1'/%3E%3C/svg%3E");
-      pointer-events: none;
-    }
 
     #book {
-      width: 100%;
-      max-width: 480px;
-      height: 1020px;
+      width: min(100%, 520px);
+      height: 920px;
     }
 
     .page {
@@ -130,13 +88,12 @@
     }
     .page-inner {
       height: 100%;
-      margin: 14px;
-      padding: 52px 42px 64px;
-      border: 1px solid rgba(60,45,30,.15);
+      margin: 16px;
+      padding: 48px 40px 60px;
+      border: 1px solid rgba(60,45,30,.14);
       border-radius: 2px;
       overflow: hidden;
       background: #faf7f2;
-      box-sizing: border-box;
     }
 
     .page.cover {
@@ -146,7 +103,7 @@
     }
     .page.cover .page-inner {
       background: transparent;
-      border-color: rgba(197,168,117,.2);
+      border-color: rgba(197,168,117,.22);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -173,7 +130,7 @@
 
     .book-nav {
       display: flex; align-items: center; gap: 16px;
-      margin-top: 26px;
+      margin-top: 28px;
     }
     .book-nav button {
       background: transparent;
@@ -199,9 +156,8 @@
     footer a { text-decoration: none; }
     .gold { color: var(--gold); }
     @media (max-width: 700px) {
-      #book { height: 860px; max-width: 100%; }
-      .table { padding: 20px 10px 28px; width: 100%; }
-      .page-inner { margin: 10px; padding: 36px 20px 48px; }
+      #book { height: 780px; }
+      .page-inner { margin: 12px; padding: 32px 20px 48px; }
     }
   </style>
 </head>
@@ -228,10 +184,8 @@
       <p>Some things take time to understand. These are the words, lessons and questions worth keeping.</p>
     </section>
 
-    <div class="scene">
-      <div class="table">
-        <div id="book"></div>
-      </div>
+    <div class="journal-wrap">
+      <div id="book"></div>
       <div class="book-nav" id="book-nav" hidden>
         <button id="prev">← Prev</button>
         <span class="page-indicator" id="indicator"></span>
@@ -259,7 +213,7 @@
     document.getElementById("year").textContent = new Date().getFullYear();
 
     let pageFlip;
-    const CHARS_PER_PAGE = 1250;
+    const CHARS_PER_PAGE = 1300;
 
     function displayDate(value) {
       if (!value) return "A reflection";
@@ -472,22 +426,22 @@
         });
 
         pageFlip = new St.PageFlip(bookEl, {
-          width: 460,
-          height: 1020,
+          width: 500,
+          height: 920,
           size: "stretch",
-          minWidth: 280,
-          maxWidth: 520,
-          minHeight: 640,
-          maxHeight: 1200,
+          minWidth: 300,
+          maxWidth: 560,
+          minHeight: 600,
+          maxHeight: 1100,
           showCover: true,
           drawShadow: true,
-          flippingTime: 650,
+          flippingTime: 640,
           usePortrait: true,
           autoSize: true,
-          maxShadowOpacity: 0.22,
+          maxShadowOpacity: 0.2,
           mobileScrollSupport: false,
           useMouseEvents: false,
-          swipeDistance: 70
+          swipeDistance: 80
         });
 
         pageFlip.loadFromHTML(pageElements);
