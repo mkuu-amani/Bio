@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0c0e">
+  <meta name="description" content="Still Becoming — reflections, stories and thoughts by Mkuu Amani.">
+  <title>The Journal — Still Becoming</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0c0e;
+      --text: #f1eee8;
+      --muted: #a5a39d;
+      --gold: #c5a875;
+      --line: rgba(255,255,255,.12);
+      --serif: "Playfair Display", Georgia, serif;
+      --sans: "DM Sans", sans-serif;
+      --page: #f8f4ed;
+      --page-text: #2a2723;
+      --page-muted: #6b6560;
+    }
+    * { box-sizing: border-box; }
+    html { background: #0b0c0e; }
+    body {
+      margin: 0;
+      background: #0b0c0e;
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.65;
+    }
+    a { color: inherit; }
+    .topbar {
+      position: absolute; z-index: 20;
+      top: 0; left: 0; width: 100%;
+      padding: 22px 6%;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+    .brand { text-decoration: none; font-family: var(--serif); font-size: 18px; letter-spacing: .04em; }
+    .navlink { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; color: #eee9df; }
+    .navlink:hover { color: var(--gold); }
+    .hero {
+      min-height: 42vh;
+      display: flex; align-items: flex-end;
+      padding: 120px 8% 50px;
+      background:
+        linear-gradient(90deg, rgba(8,9,11,.82), rgba(8,9,11,.15)),
+        linear-gradient(0deg, rgba(8,9,11,.95), transparent 70%),
+        url("https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2400&q=85") center 50%/cover;
+    }
+    .hero-content { max-width: 760px; }
+    .eyebrow { color: var(--gold); font-size: 10px; letter-spacing: .28em; text-transform: uppercase; font-weight: 600; }
+    h1 { font: 400 clamp(44px, 7vw, 80px)/.98 var(--serif); letter-spacing: -.05em; margin: 12px 0; }
+    .hero-copy { max-width: 450px; color: #d1cec7; font-size: 15.5px; line-height: 1.85; }
+    .intro {
+      padding: 28px 8% 20px;
+      display: flex; justify-content: space-between; align-items: end; gap: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .intro h2 { font: 400 clamp(26px, 3.6vw, 36px)/1.2 var(--serif); margin: 6px 0 0; }
+    .intro p { max-width: 290px; margin: 0; color: var(--muted); font-size: 13px; }
+    .journal-wrap {
+      width: 100%;
+      padding: 40px 3% 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+    }
+    #book {
+      width: min(100%, 1120px);
+      height: clamp(600px, 78vh, 860px);
+      margin-inline: auto;
+      flex: 0 0 auto;
+    }
+    #book .stf__parent { margin-inline: auto; }
+    .page {
+      background: var(--page);
+      color: var(--page-text);
+      height: 100%;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-inner {
+      height: calc(100% - 24px);
+      margin: 12px;
+      padding: 32px 28px 44px;
+      border: 1px solid rgba(60,45,30,.14);
+      border-radius: 2px;
+      overflow: hidden;
+      background: #faf7f2;
+    }
+    .page-inner img { max-width: 100%; height: auto; }
+    .page-inner figure { margin-inline: 0; }
+    .page.cover,
+    .page.back-cover {
+      background: linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
+      color: #f1eee8;
+    }
+    .page.cover .page-inner,
+    .page.back-cover .page-inner {
+      background: transparent;
+      border-color: rgba(197,168,117,.22);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 28px 20px;
+      overflow: hidden;
+    }
+    .cover-mark { font: 400 52px var(--serif); color: var(--gold); margin-bottom: 2px; }
+    .cover h2,
+    .back-cover h2 { font: 400 clamp(28px, 3.6vw, 40px)/1.05 var(--serif); margin: 0 0 8px; }
+    .cover .cover-sub,
+    .back-cover .cover-sub { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+    .cover p,
+    .back-cover p { max-width: 280px; color: #d4cfc6; font-size: 14.5px; line-height: 1.65; margin: 0 auto; }
+    .page .entry-meta { color: var(--gold); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 8px; }
+    .page h3 { font: 400 clamp(22px, 2.8vw, 28px)/1.15 var(--serif); margin: 0 0 10px; color: #1a1612; }
+    .page .entry-content {
+      font-size: 14px;
+      line-height: 1.55;
+      color: #3a3632;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .page .entry-media { margin: .5rem 0; max-width: 100%; }
+    .page.media-page .page-inner {
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 28px 22px 40px;
+    }
+    .page.media-page .entry-meta { align-self: flex-start; }
+    .page.media-page .entry-media { width: 100%; margin: 6px 0; }
+    .page .entry-media img,
+    .page .entry-media video,
+    .page .entry-media iframe {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      border: 0;
+      border-radius: 2px;
+    }
+    .page .entry-media img { height: auto; max-height: 480px; object-fit: contain; }
+    .page .entry-media video,
+    .page .entry-media iframe { aspect-ratio: 16/9; max-height: 340px; background: #111; }
+    .page.media-page .entry-media img { max-height: 520px; width: auto; max-width: 100%; margin-inline: auto; }
+    .page.media-page .entry-media video,
+    .page.media-page .entry-media iframe { width: 100%; max-height: 380px; }
+    .page figcaption { margin-top: .35rem; color: var(--page-muted); font-size: .75rem; }
+    .page-number { position: absolute; bottom: 20px; right: 28px; font-size: 10px; letter-spacing: .1em; color: var(--page-muted); }
+    .book-nav {
+      display: flex; align-items: center; gap: 16px;
+      margin-top: 28px;
+    }
+    .book-nav button {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.18);
+      color: #eee9df;
+      padding: 9px 16px;
+      font-family: var(--sans);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .book-nav button:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+    .book-nav button:disabled { opacity: .3; cursor: default; }
+    .page-indicator { font-size: 12px; letter-spacing: .1em; color: #b8b4ac; min-width: 80px; text-align: center; }
+    .empty, .status { text-align: center; padding: 50px 20px; color: var(--muted); }
+    footer {
+      padding: 26px 7%; border-top: 1px solid var(--line);
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      color: var(--muted); font-size: 11px; letter-spacing: .05em;
+    }
+    footer a { text-decoration: none; }
+    .gold { color: var(--gold); }
+    @media (max-width: 900px) {
+      .journal-wrap { padding: 28px 2% 64px; }
+      #book { height: clamp(580px, 76vh, 780px); }
+      .page-inner { padding: 28px 20px 40px; }
+    }
+    @media (max-width: 600px) {
+      .topbar { padding: 18px 5%; }
+      .brand { font-size: 16px; }
+      .navlink { font-size: 10px; }
+      .hero { min-height: 38vh; padding: 112px 7% 38px; }
+      .intro { padding: 24px 7% 20px; align-items: flex-start; flex-direction: column; gap: 12px; }
+      .intro p { max-width: 100%; }
+      .journal-wrap { padding: 24px 10px 52px; }
+      #book { width: 100%; height: clamp(560px, 74vh, 720px); }
+      .page-inner { margin: 8px; height: calc(100% - 16px); padding: 22px 14px 36px; }
+      .page h3 { font-size: clamp(20px, 5.5vw, 26px); }
+      .page .entry-content { font-size: 13px; line-height: 1.5; }
+      .cover-mark { font-size: 44px; }
+      .book-nav { gap: 10px; }
+      .book-nav button { padding: 9px 12px; font-size: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .book-nav button { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./">Still Becoming<span class="gold">.</span></a>
+    <a class="navlink" href="./">Return home ↗</a>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <div class="eyebrow">Mkuu Amani &nbsp; / &nbsp; Personal reflections</div>
+        <h1>The<br>Journal<span class="gold">.</span></h1>
+        <p class="hero-copy">A record of the journey. Thoughts, experiences and moments gathered along the way.</p>
+      </div>
+    </section>
+    <section class="intro">
+      <div>
+        <div class="eyebrow">Notes from the journey</div>
+        <h2>Still becoming.</h2>
+      </div>
+      <p>Some things take time to understand. These are the words, lessons and questions worth keeping.</p>
+    </section>
+    <div class="journal-wrap">
+      <div id="book"></div>
+      <div class="book-nav" id="book-nav" hidden>
+        <button id="prev">← Prev</button>
+        <span class="page-indicator" id="indicator"></span>
+        <button id="next">Next →</button>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <span>© <span id="year"></span> Mkuu Amani</span>
+    <a href="./">Still Becoming <span class="gold">↗</span></a>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+  <script>
+    const SUPABASE_URL = "https://ayyxlmqkiakogpyvamhl.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
+    const bookEl = document.getElementById("book");
+    const navEl = document.getElementById("book-nav");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    const indicatorEl = document.getElementById("indicator");
+    document.getElementById("year").textContent = new Date().getFullYear();
+    let pageFlip;
+    const CHARS_PER_PAGE = 1100;
+
+    function displayDate(value) {
+      if (!value) return "A reflection";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "A reflection";
+      return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" }).format(date);
+    }
+
+    function createCaption(text) {
+      if (!text) return null;
+      const caption = document.createElement("figcaption");
+      caption.textContent = text;
+      return caption;
+    }
+
+    function createCover() {
+      const div = document.createElement("div");
+      div.className = "page cover";
+      div.innerHTML = `
+        <div class="page-inner">
+          <div class="cover-mark">—</div>
+          <div class="cover-sub">The Journal</div>
+          <h2>Still Becoming.</h2>
+          <p>A record of the journey.<br>Thoughts, experiences and moments gathered along the way.</p>
+        </div>
+      `;
+      return div;
+    }
+
+    function createBackCover() {
+      const div = document.createElement("div");
+      div.className = "page back-cover";
+      div.innerHTML = `
+        <div class="page-inner">
+          <div class="cover-mark">—</div>
+          <div class="cover-sub">The Journal</div>
+          <h2>Still Becoming.</h2>
+          <p>The story continues.<br>More reflections will find their place here in time.</p>
+        </div>
+      `;
+      return div;
+    }
+
+    function splitContent(text) {
+      if (!text || !text.trim()) return [""];
+
+      const normalized = text.replace(/\r\n?/g, "\n").trim();
+      const paragraphs = normalized
+        .split(/\n\s*\n/)
+        .map(paragraph => paragraph.trim())
+        .filter(Boolean);
+
+      const pages = [];
+      let current = "";
+
+      function flush() {
+        if (current.trim()) pages.push(current.trim());
+        current = "";
+      }
+
+      function addLongParagraph(paragraph) {
+        const words = paragraph.split(/\s+/).filter(Boolean);
+        let part = "";
+
+        for (const word of words) {
+          const candidate = part ? `${part} ${word}` : word;
+
+          if (candidate.length > CHARS_PER_PAGE && part) {
+            if (current) {
+              flush();
+            }
+            current = part;
+            flush();
+            part = word;
+          } else {
+            part = candidate;
+          }
+        }
+
+        if (part) {
+          if (current && current.length + part.length + 2 > CHARS_PER_PAGE) {
+            flush();
+          }
+          current = current ? `${current}\n\n${part}` : part;
+        }
+      }
+
+      for (const paragraph of paragraphs) {
+        if (paragraph.length > CHARS_PER_PAGE) {
+          if (current) flush();
+          addLongParagraph(paragraph);
+          continue;
+        }
+
+        const candidate = current ? `${current}\n\n${paragraph}` : paragraph;
+        if (candidate.length > CHARS_PER_PAGE && current) {
+          flush();
+          current = paragraph;
+        } else {
+          current = candidate;
+        }
+      }
+
+      flush();
+      return pages.length ? pages : [normalized];
+    }
+
+    function createPage(entry, contentChunk, pageNum, isFirst) {
+      const div = document.createElement("div");
+      div.className = "page";
+      const inner = document.createElement("div");
+      inner.className = "page-inner";
+      if (isFirst) {
+        const meta = document.createElement("div");
+        meta.className = "entry-meta";
+        meta.textContent = displayDate(entry.published_at);
+        const heading = document.createElement("h3");
+        heading.textContent = entry.title || "Untitled reflection";
+        inner.append(meta, heading);
+      }
+      const content = document.createElement("div");
+      content.className = "entry-content";
+      content.textContent = contentChunk;
+      inner.append(content);
+      const num = document.createElement("div");
+      num.className = "page-number";
+      num.textContent = `${pageNum}`;
+      div.append(inner, num);
+      return div;
+    }
+
+    function createMediaPage(entry, mediaRow, mediaType, pageNum) {
+      const div = document.createElement("div");
+      div.className = "page media-page";
+      const inner = document.createElement("div");
+      inner.className = "page-inner";
+      const meta = document.createElement("div");
+      meta.className = "entry-meta";
+      meta.textContent = `${entry.title || "Untitled reflection"} · ${mediaType}`;
+      inner.append(meta);
+      const figure = document.createElement("figure");
+      figure.className = "entry-media";
+      if (mediaType === "Photograph") {
+        if (!mediaRow.signedUrl) return null;
+        const image = document.createElement("img");
+        image.src = mediaRow.signedUrl;
+        image.alt = mediaRow.caption || "Photograph accompanying this reflection";
+        image.loading = "lazy";
+        figure.append(image);
+      } else if (mediaRow.source_type === "upload" && mediaRow.signedUrl) {
+        const video = document.createElement("video");
+        video.src = mediaRow.signedUrl;
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = "metadata";
+        figure.append(video);
+      } else if (mediaRow.source_type === "youtube") {
+        const youtubeId = String(mediaRow.youtube_id || "");
+        const storedUrl = String(mediaRow.video_url || "");
+        let embedUrl;
+        try {
+          const parsedUrl = new URL(storedUrl);
+          const hostname = parsedUrl.hostname.toLowerCase();
+          const isYouTubeHost = hostname === "youtube.com" || hostname.endsWith(".youtube.com") || hostname === "youtu.be";
+          const isPlaylist = isYouTubeHost && parsedUrl.pathname === "/playlist";
+          if (isPlaylist) {
+            const playlistId = parsedUrl.searchParams.get("list") || youtubeId;
+            if (!/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) return null;
+            embedUrl = "https://www.youtube-nocookie.com/embed/videoseries?list=" + encodeURIComponent(playlistId);
+          } else {
+            const shortId = hostname === "youtu.be" ? parsedUrl.pathname.slice(1) : youtubeId;
+            if (!/^[A-Za-z0-9_-]{11}$/.test(shortId)) return null;
+            embedUrl = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(shortId);
+          }
+        } catch { return null; }
+        const iframe = document.createElement("iframe");
+        iframe.src = embedUrl;
+        iframe.title = mediaRow.caption || "YouTube video";
+        iframe.loading = "lazy";
+        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+        iframe.allowFullscreen = true;
+        figure.append(iframe);
+      } else {
+        return null;
+      }
+      const caption = createCaption(mediaRow.caption);
+      if (caption) figure.append(caption);
+      inner.append(figure);
+      const num = document.createElement("div");
+      num.className = "page-number";
+      num.textContent = `${pageNum}`;
+      div.append(inner, num);
+      return div;
+    }
+
+    function updateIndicator() {
+      if (!pageFlip) return;
+      const current = pageFlip.getCurrentPageIndex();
+      const total = pageFlip.getPageCount();
+      if (current === 0) {
+        indicatorEl.textContent = "Cover";
+      } else if (current === total - 1) {
+        indicatorEl.textContent = "Back";
+      } else {
+        indicatorEl.textContent = `${current} / ${total - 2}`;
+      }
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current >= total - 1;
+    }
+
+    async function loadSignedPhotos(client, photoRows) {
+      const results = await Promise.all(
+        (photoRows || []).map(async photo => {
+          try {
+            const { data: signed, error } = await client.storage.from("journal-photos").createSignedUrl(photo.storage_path, 3600);
+            if (error || !signed?.signedUrl) return null;
+            return { ...photo, signedUrl: signed.signedUrl };
+          } catch { return null; }
+        })
+      );
+      return results.filter(Boolean);
+    }
+
+    async function loadSignedVideos(client, videoRows) {
+      const results = await Promise.all(
+        (videoRows || []).map(async videoRow => {
+          if (videoRow.source_type === "youtube") return videoRow;
+          if (videoRow.source_type !== "upload" || !videoRow.storage_path) return null;
+          try {
+            const { data: signed, error } = await client.storage.from("journal-videos").createSignedUrl(videoRow.storage_path, 3600);
+            if (error || !signed?.signedUrl) return null;
+            return { ...videoRow, signedUrl: signed.signedUrl };
+          } catch { return null; }
+        })
+      );
+      return results.filter(Boolean);
+    }
+
+    async function loadJournal() {
+      try {
+        if (!window.supabase || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+          throw new Error("Journal connection not configured.");
+        }
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+        const { data: entries, error: entriesError } = await client.rpc("get_published_journal_entries");
+        if (entriesError) throw entriesError;
+        if (!entries || entries.length === 0) {
+          bookEl.innerHTML = `<div class="empty"><h3>The story is unfolding.</h3><p>New reflections will find their place here in time.</p></div>`;
+          return;
+        }
+        const ordered = [...entries].reverse();
+        const [
+          { data: photoRows, error: photosError },
+          { data: videoRows, error: videosError }
+        ] = await Promise.all([
+          client.rpc("get_published_journal_photos"),
+          client.rpc("get_published_journal_videos")
+        ]);
+        const [usablePhotos, usableVideos] = await Promise.all([
+          loadSignedPhotos(client, photosError ? [] : photoRows),
+          loadSignedVideos(client, videosError ? [] : videoRows)
+        ]);
+        const pageElements = [createCover()];
+        let pageCounter = 1;
+        let featuredVideoPage = null;
+        ordered.forEach(entry => {
+          const entryPhotos = usablePhotos.filter(p => p.entry_id === entry.id);
+          const entryVideos = usableVideos.filter(v => v.entry_id === entry.id);
+          const chunks = splitContent(entry.content || "");
+          chunks.forEach((chunk, i) => {
+            pageElements.push(createPage(entry, chunk, pageCounter, i === 0));
+            pageCounter++;
+          });
+          // Keep every photograph on its own page in the normal journal flow.
+          entryPhotos.forEach(photo => {
+            const mediaPage = createMediaPage(entry, photo, "Photograph", pageCounter);
+            if (mediaPage) { pageElements.push(mediaPage); pageCounter++; }
+          });
+          entryVideos.forEach(videoRow => {
+            // The first valid video is reserved for overall book page 4.
+            if (!featuredVideoPage) {
+              const mediaPage = createMediaPage(entry, videoRow, "Video", 3);
+              if (mediaPage) {
+                featuredVideoPage = mediaPage;
+                return;
+              }
+            }
+            const mediaPage = createMediaPage(entry, videoRow, "Video", pageCounter);
+            if (mediaPage) { pageElements.push(mediaPage); pageCounter++; }
+          });
+        });
+
+        if (featuredVideoPage) {
+          // Page 1 is the cover, so insert the video at array index 3 (overall page 4).
+          // If the journal has fewer than two pages before it, add plain pages so its
+          // position remains page 4 rather than silently moving the video forward.
+          while (pageElements.length < 3) {
+            const blankPage = document.createElement("div");
+            blankPage.className = "page";
+            const blankInner = document.createElement("div");
+            blankInner.className = "page-inner";
+            blankPage.append(blankInner);
+            pageElements.push(blankPage);
+          }
+          pageElements.splice(3, 0, featuredVideoPage);
+        }
+
+        // Re-number visible page labels after placing the featured video.
+        let visiblePageNumber = 1;
+        pageElements.forEach(page => {
+          if (page.classList.contains("cover") || page.classList.contains("back-cover")) return;
+          const number = page.querySelector(".page-number");
+          if (number) number.textContent = `${visiblePageNumber}`;
+          visiblePageNumber++;
+        });
+        pageElements.push(createBackCover());
+
+        pageFlip = new St.PageFlip(bookEl, {
+          width: 560,
+          height: 780,
+          size: "stretch",
+          minWidth: 280,
+          maxWidth: 560,
+          minHeight: 480,
+          maxHeight: 860,
+          showCover: true,
+          drawShadow: true,
+          flippingTime: 750,
+          usePortrait: true,
+          autoSize: false,
+          maxShadowOpacity: 0.15,
+          mobileScrollSupport: false,
+          useMouseEvents: false,
+          swipeDistance: 50
+        });
+        pageFlip.loadFromHTML(pageElements);
+        pageFlip.on("flip", updateIndicator);
+        updateIndicator();
+        navEl.hidden = false;
+        prevBtn.onclick = () => pageFlip.flipPrev();
+        nextBtn.onclick = () => pageFlip.flipNext();
+        document.addEventListener("keydown", e => {
+          const target = e.target;
+          if (target && (target.isContentEditable ||
+              /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName))) return;
+
+          if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            e.preventDefault();
+            if (e.key === "ArrowLeft") pageFlip.flipPrev();
+            else pageFlip.flipNext();
+          }
+        });
+      } catch (error) {
+        console.error("Journal loading error:", error);
+        bookEl.innerHTML = `<p class="status">The journal is temporarily unavailable. Please try again later.</p>`;
+      }
+    }
+    loadJournal();
+  </script>
+</body>
+</html>
