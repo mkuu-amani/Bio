@@ -75,13 +75,14 @@
       position: relative;
       width: min(100%, 860px);
       height: min(78vh, 820px);
-      perspective: 2400px;
-      perspective-origin: 50% 40%;
+      perspective: 1800px;
+      perspective-origin: 50% 45%;
     }
     .book {
       position: relative;
       width: 100%;
       height: 100%;
+      transform-style: preserve-3d;
     }
     .page {
       position: absolute;
@@ -90,21 +91,26 @@
       color: var(--page-text);
       border-radius: 3px 14px 14px 3px;
       box-shadow:
-        0 1px 0 rgba(255,255,255,.4) inset,
-        0 0 0 1px rgba(0,0,0,.08),
-        12px 18px 40px rgba(0,0,0,.28);
+        0 1px 0 rgba(255,255,255,.45) inset,
+        0 0 0 1px rgba(0,0,0,.07),
+        10px 16px 36px rgba(0,0,0,.22);
       padding: 64px 72px 80px;
       overflow: auto;
       transform-origin: left center;
       transform-style: preserve-3d;
-      transition: transform 0.85s cubic-bezier(.6,.05,.4,1);
+      transition: transform 0.9s cubic-bezier(.55,.08,.35,1);
       backface-visibility: hidden;
     }
     .page::-webkit-scrollbar { width: 5px; }
     .page::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 3px; }
+
+    /* Stronger flip */
     .page.flipping {
-      transform: rotateY(-180deg);
-      z-index: 20;
+      transform: rotateY(-175deg);
+      z-index: 30;
+      box-shadow:
+        -20px 8px 40px rgba(0,0,0,.35),
+        0 0 0 1px rgba(0,0,0,.07);
     }
     .page.cover {
       background: var(--cover);
@@ -283,6 +289,7 @@
 
     let pages = [];
     let current = 0;
+    let isAnimating = false;
 
     function displayDate(value) {
       if (!value) return "A reflection";
@@ -395,20 +402,31 @@
       return page;
     }
 
-    function showPage(index, animate = true) {
-      if (index < 0 || index >= pages.length) return;
+    function showPage(index) {
+      if (index < 0 || index >= pages.length || isAnimating) return;
+      isAnimating = true;
 
-      if (animate && index > current) {
+      const goingForward = index > current;
+
+      if (goingForward) {
         const leaving = pages[current];
         leaving.classList.add("flipping");
-        setTimeout(() => leaving.classList.remove("flipping"), 850);
+        setTimeout(() => {
+          leaving.classList.remove("flipping");
+          updateVisibility(index);
+          isAnimating = false;
+        }, 900);
+      } else {
+        updateVisibility(index);
+        isAnimating = false;
       }
+    }
 
+    function updateVisibility(index) {
       pages.forEach((p, i) => {
-        p.style.zIndex = i === index ? 10 : (i < index ? 1 : 5);
-        p.style.transform = i <= index ? "rotateY(0deg)" : "rotateY(0deg)";
+        p.style.zIndex = i === index ? 10 : (i < index ? 1 : 4);
+        p.style.visibility = i <= index ? "visible" : "hidden";
       });
-
       current = index;
       indicatorEl.textContent = current === 0 ? "Cover" : `${current} of ${pages.length - 1}`;
       prevBtn.disabled = current === 0;
@@ -462,7 +480,6 @@
           return;
         }
 
-        // Oldest → newest
         const ordered = [...entries].reverse();
 
         const [
@@ -481,7 +498,6 @@
         bookEl.innerHTML = "";
         pages = [];
 
-        // Front cover
         const cover = createCover();
         bookEl.append(cover);
         pages.push(cover);
@@ -495,7 +511,7 @@
         });
 
         navEl.hidden = false;
-        showPage(0, false);
+        updateVisibility(0);
 
         prevBtn.onclick = () => showPage(current - 1);
         nextBtn.onclick = () => showPage(current + 1);
