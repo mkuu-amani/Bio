@@ -44,33 +44,33 @@
     .navlink:hover { color: var(--gold); }
 
     .hero {
-      min-height: 42vh;
+      min-height: 40vh;
       display: flex; align-items: flex-end;
-      padding: 125px 8% 50px;
+      padding: 120px 8% 48px;
       background:
         linear-gradient(90deg, rgba(8,9,11,.82), rgba(8,9,11,.15)),
         linear-gradient(0deg, rgba(8,9,11,.95), transparent 70%),
         url("https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2400&q=85") center 50%/cover;
     }
-    .hero-content { max-width: 780px; }
+    .hero-content { max-width: 760px; }
     .eyebrow { color: var(--gold); font-size: 10px; letter-spacing: .28em; text-transform: uppercase; font-weight: 600; }
-    h1 { font: 400 clamp(46px, 7.5vw, 86px)/.98 var(--serif); letter-spacing: -.05em; margin: 14px 0; }
-    .hero-copy { max-width: 460px; color: #d1cec7; font-size: 15.5px; line-height: 1.85; }
+    h1 { font: 400 clamp(44px, 7vw, 80px)/.98 var(--serif); letter-spacing: -.05em; margin: 12px 0; }
+    .hero-copy { max-width: 450px; color: #d1cec7; font-size: 15.5px; line-height: 1.85; }
 
     .intro {
-      padding: 28px 8% 20px;
+      padding: 26px 8% 18px;
       display: flex; justify-content: space-between; align-items: end; gap: 24px;
       border-bottom: 1px solid var(--line);
     }
-    .intro h2 { font: 400 clamp(26px, 3.8vw, 38px)/1.2 var(--serif); margin: 6px 0 0; }
-    .intro p { max-width: 300px; margin: 0; color: var(--muted); font-size: 13px; }
+    .intro h2 { font: 400 clamp(26px, 3.6vw, 36px)/1.2 var(--serif); margin: 6px 0 0; }
+    .intro p { max-width: 290px; margin: 0; color: var(--muted); font-size: 13px; }
 
     .scene {
       position: relative;
       min-height: 100vh;
-      padding: 40px 3% 80px;
+      padding: 36px 2% 70px;
       background:
-        radial-gradient(ellipse at 50% 20%, rgba(90,70,45,.2), transparent 55%),
+        radial-gradient(ellipse at 50% 18%, rgba(90,70,45,.18), transparent 50%),
         linear-gradient(180deg, #1c1713 0%, #0e0c0a 100%);
       display: flex;
       flex-direction: column;
@@ -79,10 +79,10 @@
     }
     .table {
       position: relative;
-      width: min(100%, 720px);
-      padding: 40px 28px 48px;
+      width: min(100%, 640px);
+      padding: 36px 20px 44px;
       background:
-        linear-gradient(180deg, rgba(60,45,30,.3), rgba(25,18,12,.45)),
+        linear-gradient(180deg, rgba(60,45,30,.28), rgba(25,18,12,.42)),
         repeating-linear-gradient(
           90deg,
           #5a4632 0px,
@@ -96,10 +96,10 @@
         );
       border-radius: 4px;
       box-shadow:
-        0 45px 80px rgba(0,0,0,.55),
-        0 8px 20px rgba(0,0,0,.4),
-        inset 0 1px 0 rgba(255,220,180,.16),
-        inset 0 -2px 3px rgba(0,0,0,.2);
+        0 40px 70px rgba(0,0,0,.5),
+        0 6px 16px rgba(0,0,0,.35),
+        inset 0 1px 0 rgba(255,220,180,.14),
+        inset 0 -2px 3px rgba(0,0,0,.18);
       display: flex;
       justify-content: center;
     }
@@ -109,15 +109,15 @@
       inset: 0;
       border-radius: 4px;
       background:
-        linear-gradient(180deg, rgba(255,230,190,.06), transparent 22%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.11'/%3E%3C/svg%3E");
+        linear-gradient(180deg, rgba(255,230,190,.05), transparent 20%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.1'/%3E%3C/svg%3E");
       pointer-events: none;
     }
 
     #book {
       width: 100%;
-      max-width: 560px;
-      height: 980px;
+      max-width: 480px;
+      height: 1020px;
     }
 
     .page {
@@ -130,12 +130,13 @@
     }
     .page-inner {
       height: 100%;
-      margin: 16px;
-      padding: 48px 46px 60px;
-      border: 1px solid rgba(60,45,30,.16);
+      margin: 14px;
+      padding: 52px 42px 64px;
+      border: 1px solid rgba(60,45,30,.15);
       border-radius: 2px;
       overflow: hidden;
       background: #faf7f2;
+      box-sizing: border-box;
     }
 
     .page.cover {
@@ -145,34 +146,34 @@
     }
     .page.cover .page-inner {
       background: transparent;
-      border-color: rgba(197,168,117,.22);
+      border-color: rgba(197,168,117,.2);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 40px 28px;
+      padding: 36px 24px;
     }
-    .cover-mark { font: 400 58px var(--serif); color: var(--gold); margin-bottom: 4px; }
-    .cover h2 { font: 400 clamp(30px, 4vw, 44px)/1.05 var(--serif); margin: 0 0 10px; }
-    .cover .cover-sub { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
-    .cover p { max-width: 280px; color: #d4cfc6; font-size: 14.5px; line-height: 1.7; margin: 0 auto; }
+    .cover-mark { font: 400 56px var(--serif); color: var(--gold); margin-bottom: 4px; }
+    .cover h2 { font: 400 clamp(28px, 3.8vw, 40px)/1.05 var(--serif); margin: 0 0 8px; }
+    .cover .cover-sub { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+    .cover p { max-width: 260px; color: #d4cfc6; font-size: 14.5px; line-height: 1.7; margin: 0 auto; }
 
     .page .entry-meta { color: var(--gold); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 12px; }
-    .page h3 { font: 400 clamp(26px, 3.2vw, 34px)/1.18 var(--serif); margin: 0 0 18px; color: #1a1612; }
+    .page h3 { font: 400 clamp(24px, 3vw, 32px)/1.18 var(--serif); margin: 0 0 16px; color: #1a1612; }
     .page .entry-content { font-size: 15.5px; line-height: 1.9; color: #3a3632; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .page .entry-media { margin: 1.3rem 0; }
+    .page .entry-media { margin: 1.2rem 0; }
     .page .entry-media img,
     .page .entry-media video,
     .page .entry-media iframe { display: block; width: 100%; border: 0; border-radius: 2px; }
     .page .entry-media video,
     .page .entry-media iframe { aspect-ratio: 16/9; background: #111; }
-    .page figcaption { margin-top: .5rem; color: var(--page-muted); font-size: .8rem; }
-    .page-number { position: absolute; bottom: 30px; right: 34px; font-size: 10px; letter-spacing: .12em; color: var(--page-muted); }
+    .page figcaption { margin-top: .45rem; color: var(--page-muted); font-size: .8rem; }
+    .page-number { position: absolute; bottom: 28px; right: 32px; font-size: 10px; letter-spacing: .12em; color: var(--page-muted); }
 
     .book-nav {
       display: flex; align-items: center; gap: 16px;
-      margin-top: 28px;
+      margin-top: 26px;
     }
     .book-nav button {
       background: transparent;
@@ -198,9 +199,9 @@
     footer a { text-decoration: none; }
     .gold { color: var(--gold); }
     @media (max-width: 700px) {
-      #book { height: 820px; max-width: 100%; }
-      .table { padding: 24px 12px 32px; width: 100%; }
-      .page-inner { margin: 12px; padding: 32px 22px 46px; }
+      #book { height: 860px; max-width: 100%; }
+      .table { padding: 20px 10px 28px; width: 100%; }
+      .page-inner { margin: 10px; padding: 36px 20px 48px; }
     }
   </style>
 </head>
@@ -258,7 +259,7 @@
     document.getElementById("year").textContent = new Date().getFullYear();
 
     let pageFlip;
-    const CHARS_PER_PAGE = 1400;
+    const CHARS_PER_PAGE = 1250;
 
     function displayDate(value) {
       if (!value) return "A reflection";
@@ -471,22 +472,22 @@
         });
 
         pageFlip = new St.PageFlip(bookEl, {
-          width: 540,
-          height: 980,
+          width: 460,
+          height: 1020,
           size: "stretch",
-          minWidth: 300,
-          maxWidth: 640,
-          minHeight: 600,
-          maxHeight: 1100,
+          minWidth: 280,
+          maxWidth: 520,
+          minHeight: 640,
+          maxHeight: 1200,
           showCover: true,
           drawShadow: true,
-          flippingTime: 680,
+          flippingTime: 650,
           usePortrait: true,
           autoSize: true,
-          maxShadowOpacity: 0.25,
+          maxShadowOpacity: 0.22,
           mobileScrollSupport: false,
           useMouseEvents: false,
-          swipeDistance: 60
+          swipeDistance: 70
         });
 
         pageFlip.loadFromHTML(pageElements);
