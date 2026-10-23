@@ -103,12 +103,14 @@
     .page-inner::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 2px; }
     .page-inner img { max-width: 100%; height: auto; }
     .page-inner figure { margin-inline: 0; }
-    .page.cover {
+    .page.cover,
+    .page.back-cover {
       background:
         linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
       color: #f1eee8;
     }
-    .page.cover .page-inner {
+    .page.cover .page-inner,
+    .page.back-cover .page-inner {
       background: transparent;
       border-color: rgba(197,168,117,.22);
       display: flex;
@@ -120,9 +122,12 @@
       overflow: hidden;
     }
     .cover-mark { font: 400 60px var(--serif); color: var(--gold); margin-bottom: 4px; }
-    .cover h2 { font: 400 clamp(32px, 4vw, 46px)/1.05 var(--serif); margin: 0 0 10px; }
-    .cover .cover-sub { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
-    .cover p { max-width: 300px; color: #d4cfc6; font-size: 15px; line-height: 1.7; margin: 0 auto; }
+    .cover h2,
+    .back-cover h2 { font: 400 clamp(32px, 4vw, 46px)/1.05 var(--serif); margin: 0 0 10px; }
+    .cover .cover-sub,
+    .back-cover .cover-sub { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .cover p,
+    .back-cover p { max-width: 300px; color: #d4cfc6; font-size: 15px; line-height: 1.7; margin: 0 auto; }
     .page .entry-meta { color: var(--gold); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 12px; }
     .page h3 { font: 400 clamp(24px, 3vw, 32px)/1.18 var(--serif); margin: 0 0 16px; color: #1a1612; }
     .page .entry-content { font-size: 15.5px; line-height: 1.9; color: #3a3632; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -274,6 +279,20 @@
       return div;
     }
 
+    function createBackCover() {
+      const div = document.createElement("div");
+      div.className = "page back-cover";
+      div.innerHTML = `
+        <div class="page-inner">
+          <div class="cover-mark">—</div>
+          <div class="cover-sub">The Journal</div>
+          <h2>Still Becoming.</h2>
+          <p>The story continues.<br>More reflections will find their place here in time.</p>
+        </div>
+      `;
+      return div;
+    }
+
     function splitContent(text) {
       if (!text) return [""];
       const words = text.split(/\s+/);
@@ -312,7 +331,6 @@
       content.textContent = contentChunk;
       inner.append(content);
 
-      // Photos stay on the first page of the entry
       if (isFirst) {
         photos.forEach(photo => {
           if (!photo.signedUrl) return;
@@ -329,7 +347,6 @@
         });
       }
 
-      // Videos are placed only on page 4
       if (pageNum === 4) {
         videos.forEach(videoRow => {
           const figure = document.createElement("figure");
@@ -384,7 +401,13 @@
       if (!pageFlip) return;
       const current = pageFlip.getCurrentPageIndex();
       const total = pageFlip.getPageCount();
-      indicatorEl.textContent = current === 0 ? "Cover" : `${current} / ${total - 1}`;
+      if (current === 0) {
+        indicatorEl.textContent = "Cover";
+      } else if (current === total - 1) {
+        indicatorEl.textContent = "Back";
+      } else {
+        indicatorEl.textContent = `${current} / ${total - 2}`;
+      }
       prevBtn.disabled = current === 0;
       nextBtn.disabled = current >= total - 1;
     }
@@ -452,6 +475,8 @@
             pageCounter++;
           });
         });
+        pageElements.push(createBackCover());
+
         pageFlip = new St.PageFlip(bookEl, {
           width: 560,
           height: 780,
