@@ -23,7 +23,7 @@
       --page-muted: #6b6560;
     }
     * { box-sizing: border-box; }
-    html { background: #0b0c0e; }
+    html { background: #0b0c0e; height: auto; }
     body {
       margin: 0;
       background: #0b0c0e;
@@ -31,6 +31,10 @@
       font-family: var(--sans);
       line-height: 1.65;
       -webkit-text-size-adjust: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      height: auto;
+      min-height: 100%;
     }
     a { color: inherit; }
     .topbar {
@@ -63,7 +67,7 @@
     .intro p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
 
     .journal-wrap {
-      padding: 10px 10px 90px;
+      padding: 10px 10px 100px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -73,6 +77,7 @@
       max-width: 400px;
       height: 600px;
       position: relative;
+      touch-action: pan-y;
     }
     .page {
       background: var(--page);
@@ -179,7 +184,7 @@
     .page-indicator { font-size: 12px; letter-spacing: .08em; color: #b8b4ac; min-width: 64px; text-align: center; }
     .empty, .status { text-align: center; padding: 40px 16px; color: var(--muted); }
     footer {
-      padding: 12px 16px 80px;
+      padding: 12px 16px 90px;
       border-top: 1px solid var(--line);
       color: var(--muted);
       font-size: 11px;
@@ -484,9 +489,9 @@
           usePortrait: true,
           autoSize: false,
           maxShadowOpacity: 0.08,
-          mobileScrollSupport: false,
+          mobileScrollSupport: true,
           useMouseEvents: false,
-          swipeDistance: 80
+          swipeDistance: 100
         });
         pageFlip.loadFromHTML(pageElements);
         pageFlip.on("flip", updateIndicator);
