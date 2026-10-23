@@ -42,7 +42,6 @@
     .brand { text-decoration: none; font-family: var(--serif); font-size: 18px; letter-spacing: .04em; }
     .navlink { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; color: #eee9df; }
     .navlink:hover { color: var(--gold); }
-
     .hero {
       min-height: 42vh;
       display: flex; align-items: flex-end;
@@ -56,7 +55,6 @@
     .eyebrow { color: var(--gold); font-size: 10px; letter-spacing: .28em; text-transform: uppercase; font-weight: 600; }
     h1 { font: 400 clamp(44px, 7vw, 80px)/.98 var(--serif); letter-spacing: -.05em; margin: 12px 0; }
     .hero-copy { max-width: 450px; color: #d1cec7; font-size: 15.5px; line-height: 1.85; }
-
     .intro {
       padding: 28px 8% 20px;
       display: flex; justify-content: space-between; align-items: end; gap: 24px;
@@ -64,7 +62,6 @@
     }
     .intro h2 { font: 400 clamp(26px, 3.6vw, 36px)/1.2 var(--serif); margin: 6px 0 0; }
     .intro p { max-width: 290px; margin: 0; color: var(--muted); font-size: 13px; }
-
     .journal-wrap {
       width: 100%;
       padding: 40px 3% 80px;
@@ -73,20 +70,15 @@
       align-items: center;
       overflow: hidden;
     }
-
-    /* The book container has a stable size so PageFlip does not repeatedly
-       resize itself while the pointer moves across the pages. */
     #book {
       width: min(100%, 1120px);
       height: clamp(600px, 78vh, 860px);
       margin-inline: auto;
       flex: 0 0 auto;
     }
-
     #book .stf__parent {
       margin-inline: auto;
     }
-
     .page {
       background: var(--page);
       color: var(--page-text);
@@ -111,7 +103,6 @@
     .page-inner::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 2px; }
     .page-inner img { max-width: 100%; height: auto; }
     .page-inner figure { margin-inline: 0; }
-
     .page.cover {
       background:
         linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
@@ -132,7 +123,6 @@
     .cover h2 { font: 400 clamp(32px, 4vw, 46px)/1.05 var(--serif); margin: 0 0 10px; }
     .cover .cover-sub { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
     .cover p { max-width: 300px; color: #d4cfc6; font-size: 15px; line-height: 1.7; margin: 0 auto; }
-
     .page .entry-meta { color: var(--gold); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 12px; }
     .page h3 { font: 400 clamp(24px, 3vw, 32px)/1.18 var(--serif); margin: 0 0 16px; color: #1a1612; }
     .page .entry-content { font-size: 15.5px; line-height: 1.9; color: #3a3632; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -157,7 +147,6 @@
     }
     .page figcaption { margin-top: .45rem; color: var(--page-muted); font-size: .8rem; }
     .page-number { position: absolute; bottom: 26px; right: 34px; font-size: 10px; letter-spacing: .12em; color: var(--page-muted); }
-
     .book-nav {
       display: flex; align-items: center; gap: 16px;
       margin-top: 28px;
@@ -176,7 +165,6 @@
     .book-nav button:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
     .book-nav button:disabled { opacity: .3; cursor: default; }
     .page-indicator { font-size: 12px; letter-spacing: .1em; color: #b8b4ac; min-width: 80px; text-align: center; }
-
     .empty, .status { text-align: center; padding: 50px 20px; color: var(--muted); }
     footer {
       padding: 26px 7%; border-top: 1px solid var(--line);
@@ -190,7 +178,6 @@
       #book { height: clamp(580px, 76vh, 780px); }
       .page-inner { padding: 34px 24px 50px; }
     }
-
     @media (max-width: 600px) {
       .topbar { padding: 18px 5%; }
       .brand { font-size: 16px; }
@@ -207,7 +194,6 @@
       .book-nav { gap: 10px; }
       .book-nav button { padding: 9px 12px; font-size: 10px; }
     }
-
     @media (prefers-reduced-motion: reduce) {
       .book-nav button { transition: none; }
     }
@@ -218,7 +204,6 @@
     <a class="brand" href="./">Still Becoming<span class="gold">.</span></a>
     <a class="navlink" href="./">Return home ↗</a>
   </header>
-
   <main>
     <section class="hero">
       <div class="hero-content">
@@ -227,7 +212,6 @@
         <p class="hero-copy">A record of the journey. Thoughts, experiences and moments gathered along the way.</p>
       </div>
     </section>
-
     <section class="intro">
       <div>
         <div class="eyebrow">Notes from the journey</div>
@@ -235,7 +219,6 @@
       </div>
       <p>Some things take time to understand. These are the words, lessons and questions worth keeping.</p>
     </section>
-
     <div class="journal-wrap">
       <div id="book"></div>
       <div class="book-nav" id="book-nav" hidden>
@@ -245,25 +228,21 @@
       </div>
     </div>
   </main>
-
   <footer>
     <span>© <span id="year"></span> Mkuu Amani</span>
     <a href="./">Still Becoming <span class="gold">↗</span></a>
   </footer>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
   <script>
     const SUPABASE_URL = "https://ayyxlmqkiakogpyvamhl.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
-
     const bookEl = document.getElementById("book");
     const navEl = document.getElementById("book-nav");
     const prevBtn = document.getElementById("prev");
     const nextBtn = document.getElementById("next");
     const indicatorEl = document.getElementById("indicator");
     document.getElementById("year").textContent = new Date().getFullYear();
-
     let pageFlip;
     const CHARS_PER_PAGE = 1200;
 
@@ -316,7 +295,6 @@
     function createPage(entry, contentChunk, photos = [], videos = [], pageNum, isFirst) {
       const div = document.createElement("div");
       div.className = "page";
-
       const inner = document.createElement("div");
       inner.className = "page-inner";
 
@@ -334,7 +312,25 @@
       content.textContent = contentChunk;
       inner.append(content);
 
+      // Photos stay on the first page of the entry
       if (isFirst) {
+        photos.forEach(photo => {
+          if (!photo.signedUrl) return;
+          const figure = document.createElement("figure");
+          figure.className = "entry-media";
+          const image = document.createElement("img");
+          image.src = photo.signedUrl;
+          image.alt = photo.caption || "Photograph accompanying this reflection";
+          image.loading = "lazy";
+          figure.append(image);
+          const caption = createCaption(photo.caption);
+          if (caption) figure.append(caption);
+          inner.append(figure);
+        });
+      }
+
+      // Videos are placed only on page 4
+      if (pageNum === 4) {
         videos.forEach(videoRow => {
           const figure = document.createElement("figure");
           figure.className = "entry-media";
@@ -372,20 +368,6 @@
             figure.append(iframe);
           }
           const caption = createCaption(videoRow.caption);
-          if (caption) figure.append(caption);
-          inner.append(figure);
-        });
-
-        photos.forEach(photo => {
-          if (!photo.signedUrl) return;
-          const figure = document.createElement("figure");
-          figure.className = "entry-media";
-          const image = document.createElement("img");
-          image.src = photo.signedUrl;
-          image.alt = photo.caption || "Photograph accompanying this reflection";
-          image.loading = "lazy";
-          figure.append(image);
-          const caption = createCaption(photo.caption);
           if (caption) figure.append(caption);
           inner.append(figure);
         });
@@ -441,16 +423,13 @@
           throw new Error("Journal connection not configured.");
         }
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
         const { data: entries, error: entriesError } = await client.rpc("get_published_journal_entries");
         if (entriesError) throw entriesError;
         if (!entries || entries.length === 0) {
           bookEl.innerHTML = `<div class="empty"><h3>The story is unfolding.</h3><p>New reflections will find their place here in time.</p></div>`;
           return;
         }
-
         const ordered = [...entries].reverse();
-
         const [
           { data: photoRows, error: photosError },
           { data: videoRows, error: videosError }
@@ -458,15 +437,12 @@
           client.rpc("get_published_journal_photos"),
           client.rpc("get_published_journal_videos")
         ]);
-
         const [usablePhotos, usableVideos] = await Promise.all([
           loadSignedPhotos(client, photosError ? [] : photoRows),
           loadSignedVideos(client, videosError ? [] : videoRows)
         ]);
-
         const pageElements = [createCover()];
         let pageCounter = 1;
-
         ordered.forEach(entry => {
           const entryPhotos = usablePhotos.filter(p => p.entry_id === entry.id);
           const entryVideos = usableVideos.filter(v => v.entry_id === entry.id);
@@ -476,7 +452,6 @@
             pageCounter++;
           });
         });
-
         pageFlip = new St.PageFlip(bookEl, {
           width: 560,
           height: 780,
@@ -495,26 +470,21 @@
           useMouseEvents: false,
           swipeDistance: 40
         });
-
         pageFlip.loadFromHTML(pageElements);
         pageFlip.on("flip", updateIndicator);
         updateIndicator();
-
         navEl.hidden = false;
         prevBtn.onclick = () => pageFlip.flipPrev();
         nextBtn.onclick = () => pageFlip.flipNext();
-
         document.addEventListener("keydown", e => {
           if (e.key === "ArrowLeft") pageFlip.flipPrev();
           if (e.key === "ArrowRight") pageFlip.flipNext();
         });
-
       } catch (error) {
         console.error("Journal loading error:", error);
         bookEl.innerHTML = `<p class="status">The journal is temporarily unavailable. Please try again later.</p>`;
       }
     }
-
     loadJournal();
   </script>
 </body>
