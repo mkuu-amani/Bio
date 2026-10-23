@@ -66,16 +66,15 @@
     .intro p { max-width: 290px; margin: 0; color: var(--muted); font-size: 13px; }
 
     .journal-wrap {
-      padding: 40px 4% 80px;
+      padding: 40px 3% 80px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
     }
 
     #book {
-      width: min(100%, 520px);
-      height: 920px;
+      width: min(100%, 900px);
+      height: 780px;
     }
 
     .page {
@@ -88,13 +87,15 @@
     }
     .page-inner {
       height: 100%;
-      margin: 16px;
-      padding: 48px 40px 60px;
+      margin: 14px;
+      padding: 44px 42px 56px;
       border: 1px solid rgba(60,45,30,.14);
       border-radius: 2px;
-      overflow: hidden;
+      overflow: auto;
       background: #faf7f2;
     }
+    .page-inner::-webkit-scrollbar { width: 4px; }
+    .page-inner::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 2px; }
 
     .page.cover {
       background:
@@ -110,11 +111,12 @@
       align-items: center;
       text-align: center;
       padding: 36px 24px;
+      overflow: hidden;
     }
-    .cover-mark { font: 400 56px var(--serif); color: var(--gold); margin-bottom: 4px; }
-    .cover h2 { font: 400 clamp(28px, 3.8vw, 40px)/1.05 var(--serif); margin: 0 0 8px; }
-    .cover .cover-sub { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
-    .cover p { max-width: 260px; color: #d4cfc6; font-size: 14.5px; line-height: 1.7; margin: 0 auto; }
+    .cover-mark { font: 400 60px var(--serif); color: var(--gold); margin-bottom: 4px; }
+    .cover h2 { font: 400 clamp(32px, 4vw, 46px)/1.05 var(--serif); margin: 0 0 10px; }
+    .cover .cover-sub { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .cover p { max-width: 300px; color: #d4cfc6; font-size: 15px; line-height: 1.7; margin: 0 auto; }
 
     .page .entry-meta { color: var(--gold); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 12px; }
     .page h3 { font: 400 clamp(24px, 3vw, 32px)/1.18 var(--serif); margin: 0 0 16px; color: #1a1612; }
@@ -126,7 +128,7 @@
     .page .entry-media video,
     .page .entry-media iframe { aspect-ratio: 16/9; background: #111; }
     .page figcaption { margin-top: .45rem; color: var(--page-muted); font-size: .8rem; }
-    .page-number { position: absolute; bottom: 28px; right: 32px; font-size: 10px; letter-spacing: .12em; color: var(--page-muted); }
+    .page-number { position: absolute; bottom: 26px; right: 34px; font-size: 10px; letter-spacing: .12em; color: var(--page-muted); }
 
     .book-nav {
       display: flex; align-items: center; gap: 16px;
@@ -156,8 +158,8 @@
     footer a { text-decoration: none; }
     .gold { color: var(--gold); }
     @media (max-width: 700px) {
-      #book { height: 780px; }
-      .page-inner { margin: 12px; padding: 32px 20px 48px; }
+      #book { height: 680px; }
+      .page-inner { margin: 10px; padding: 28px 18px 42px; }
     }
   </style>
 </head>
@@ -213,7 +215,7 @@
     document.getElementById("year").textContent = new Date().getFullYear();
 
     let pageFlip;
-    const CHARS_PER_PAGE = 1300;
+    const CHARS_PER_PAGE = 1200;
 
     function displayDate(value) {
       if (!value) return "A reflection";
@@ -426,22 +428,22 @@
         });
 
         pageFlip = new St.PageFlip(bookEl, {
-          width: 500,
-          height: 920,
+          width: 860,
+          height: 780,
           size: "stretch",
-          minWidth: 300,
-          maxWidth: 560,
-          minHeight: 600,
-          maxHeight: 1100,
+          minWidth: 320,
+          maxWidth: 1000,
+          minHeight: 480,
+          maxHeight: 900,
           showCover: true,
           drawShadow: true,
-          flippingTime: 640,
+          flippingTime: 700,
           usePortrait: true,
           autoSize: true,
-          maxShadowOpacity: 0.2,
+          maxShadowOpacity: 0.3,
           mobileScrollSupport: false,
-          useMouseEvents: false,
-          swipeDistance: 80
+          useMouseEvents: true,
+          swipeDistance: 40
         });
 
         pageFlip.loadFromHTML(pageElements);
