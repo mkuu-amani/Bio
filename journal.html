@@ -18,7 +18,7 @@
       --line: rgba(255,255,255,.12);
       --serif: "Playfair Display", Georgia, serif;
       --sans: "DM Sans", sans-serif;
-      --page: #f7f3eb;
+      --page: #f8f4ed;
       --page-text: #2a2723;
       --page-muted: #6b6560;
     }
@@ -44,9 +44,9 @@
     .navlink:hover { color: var(--gold); }
 
     .hero {
-      min-height: 48vh;
+      min-height: 46vh;
       display: flex; align-items: flex-end;
-      padding: 130px 8% 60px;
+      padding: 130px 8% 55px;
       background:
         linear-gradient(90deg, rgba(8,9,11,.82), rgba(8,9,11,.15)),
         linear-gradient(0deg, rgba(8,9,11,.95), transparent 70%),
@@ -58,93 +58,107 @@
     .hero-copy { max-width: 480px; color: #d1cec7; font-size: 15.5px; line-height: 1.85; }
 
     .intro {
-      padding: 32px 8% 24px;
+      padding: 30px 8% 22px;
       display: flex; justify-content: space-between; align-items: end; gap: 24px;
       border-bottom: 1px solid var(--line);
     }
     .intro h2 { font: 400 clamp(28px, 4vw, 40px)/1.2 var(--serif); margin: 8px 0 0; }
     .intro p { max-width: 300px; margin: 0; color: var(--muted); font-size: 13px; }
 
-    /* Atmospheric table scene */
     .scene {
       position: relative;
       min-height: 100vh;
-      padding: 40px 3% 80px;
+      padding: 36px 3% 70px;
       background:
-        radial-gradient(ellipse at 50% 30%, rgba(80,60,40,.25), transparent 55%),
-        linear-gradient(180deg, #1a1612 0%, #0f0d0b 100%);
+        radial-gradient(ellipse at 50% 25%, rgba(90,70,45,.22), transparent 60%),
+        linear-gradient(180deg, #1c1713 0%, #0e0c0a 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
     }
     .table {
       position: relative;
-      width: min(100%, 980px);
-      padding: 50px 40px 60px;
+      width: min(100%, 1040px);
+      padding: 48px 36px 56px;
       background:
-        linear-gradient(180deg, rgba(40,32,24,.4), rgba(20,16,12,.6)),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E"),
-        linear-gradient(135deg, #3a2e24, #2a221c 40%, #1e1814);
-      border-radius: 6px;
+        linear-gradient(180deg, rgba(60,45,30,.35), rgba(25,18,12,.5)),
+        repeating-linear-gradient(
+          90deg,
+          #5a4632 0px,
+          #4e3c2a 2px,
+          #6b5340 6px,
+          #3f3024 10px,
+          #5c4836 14px,
+          #453628 18px,
+          #6a5240 22px,
+          #3a2c22 26px
+        );
+      border-radius: 4px;
       box-shadow:
-        0 40px 80px rgba(0,0,0,.55),
-        0 8px 20px rgba(0,0,0,.4),
-        inset 0 1px 0 rgba(255,220,180,.12);
+        0 50px 90px rgba(0,0,0,.6),
+        0 10px 25px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,220,180,.18),
+        inset 0 -2px 4px rgba(0,0,0,.25);
     }
     .table::before {
       content: "";
       position: absolute;
       inset: 0;
-      border-radius: 6px;
-      background: linear-gradient(180deg, rgba(255,220,180,.06), transparent 30%);
+      border-radius: 4px;
+      background:
+        linear-gradient(180deg, rgba(255,230,190,.07), transparent 25%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.12'/%3E%3C/svg%3E");
       pointer-events: none;
     }
 
     #book {
       width: 100%;
-      height: 760px;
+      height: 860px;
       margin: 0 auto;
     }
-    .stf__parent { margin: 0 auto; }
 
     .page {
       background: var(--page);
       color: var(--page-text);
-      padding: 52px 58px 64px;
       height: 100%;
-      overflow: hidden;
+      padding: 0;
       position: relative;
+      overflow: hidden;
     }
+    .page-inner {
+      height: 100%;
+      margin: 18px;
+      padding: 42px 48px 56px;
+      border: 1px solid rgba(60,45,30,.18);
+      border-radius: 2px;
+      overflow: auto;
+      background: #faf7f2;
+    }
+    .page-inner::-webkit-scrollbar { width: 4px; }
+    .page-inner::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 2px; }
+
     .page.cover {
       background:
-        linear-gradient(145deg, #2c241c 0%, #1a1612 40%, #221c16 100%);
+        linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
       color: #f1eee8;
+    }
+    .page.cover .page-inner {
+      background: transparent;
+      border-color: rgba(197,168,117,.25);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 50px 40px;
-      position: relative;
-      overflow: hidden;
+      padding: 40px 30px;
     }
-    .page.cover::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E"),
-        radial-gradient(circle at 30% 20%, rgba(197,168,117,.15), transparent 50%);
-      pointer-events: none;
-    }
-    .cover-content { position: relative; z-index: 1; }
-    .cover-mark { font: 400 64px var(--serif); color: var(--gold); margin-bottom: 4px; }
-    .cover h2 { font: 400 clamp(34px, 4.5vw, 52px)/1.05 var(--serif); margin: 0 0 12px; }
-    .cover .cover-sub { font-size: 11px; letter-spacing: .24em; text-transform: uppercase; color: var(--gold); margin-bottom: 18px; }
-    .cover p { max-width: 320px; color: #d4cfc6; font-size: 14.5px; line-height: 1.75; margin: 0 auto; }
+    .cover-mark { font: 400 62px var(--serif); color: var(--gold); margin-bottom: 4px; }
+    .cover h2 { font: 400 clamp(32px, 4.2vw, 48px)/1.05 var(--serif); margin: 0 0 10px; }
+    .cover .cover-sub { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+    .cover p { max-width: 300px; color: #d4cfc6; font-size: 14.5px; line-height: 1.7; margin: 0 auto; }
 
     .page .entry-meta { color: var(--gold); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 10px; }
-    .page h3 { font: 400 clamp(24px, 3.2vw, 32px)/1.2 var(--serif); margin: 0 0 16px; color: #1a1612; }
+    .page h3 { font: 400 clamp(24px, 3vw, 32px)/1.2 var(--serif); margin: 0 0 16px; color: #1a1612; }
     .page .entry-content { font-size: 15px; line-height: 1.85; color: #3a3632; white-space: pre-wrap; overflow-wrap: anywhere; }
     .page .entry-media { margin: 1.2rem 0; }
     .page .entry-media img,
@@ -153,11 +167,11 @@
     .page .entry-media video,
     .page .entry-media iframe { aspect-ratio: 16/9; background: #111; }
     .page figcaption { margin-top: .45rem; color: var(--page-muted); font-size: .8rem; }
-    .page-number { position: absolute; bottom: 22px; right: 32px; font-size: 10px; letter-spacing: .12em; color: var(--page-muted); }
+    .page-number { position: absolute; bottom: 28px; right: 36px; font-size: 10px; letter-spacing: .12em; color: var(--page-muted); }
 
     .book-nav {
       display: flex; align-items: center; gap: 16px;
-      margin-top: 28px;
+      margin-top: 26px;
     }
     .book-nav button {
       background: transparent;
@@ -183,9 +197,9 @@
     footer a { text-decoration: none; }
     .gold { color: var(--gold); }
     @media (max-width: 700px) {
-      #book { height: 620px; }
-      .table { padding: 30px 16px 40px; }
-      .page { padding: 36px 28px 50px; }
+      #book { height: 680px; }
+      .table { padding: 28px 14px 36px; }
+      .page-inner { margin: 12px; padding: 28px 22px 42px; }
     }
   </style>
 </head>
@@ -243,7 +257,7 @@
     document.getElementById("year").textContent = new Date().getFullYear();
 
     let pageFlip;
-    const CHARS_PER_PAGE = 1100;
+    const CHARS_PER_PAGE = 1050;
 
     function displayDate(value) {
       if (!value) return "A reflection";
@@ -263,7 +277,7 @@
       const div = document.createElement("div");
       div.className = "page cover";
       div.innerHTML = `
-        <div class="cover-content">
+        <div class="page-inner">
           <div class="cover-mark">—</div>
           <div class="cover-sub">The Journal</div>
           <h2>Still Becoming.</h2>
@@ -291,9 +305,12 @@
       return pages.length ? pages : [""];
     }
 
-    function createPage(entry, contentChunk, photos = [], videos = [], pageNum, totalPages, isFirst) {
+    function createPage(entry, contentChunk, photos = [], videos = [], pageNum, isFirst) {
       const div = document.createElement("div");
       div.className = "page";
+
+      const inner = document.createElement("div");
+      inner.className = "page-inner";
 
       if (isFirst) {
         const meta = document.createElement("div");
@@ -301,13 +318,13 @@
         meta.textContent = displayDate(entry.published_at);
         const heading = document.createElement("h3");
         heading.textContent = entry.title || "Untitled reflection";
-        div.append(meta, heading);
+        inner.append(meta, heading);
       }
 
       const content = document.createElement("div");
       content.className = "entry-content";
       content.textContent = contentChunk;
-      div.append(content);
+      inner.append(content);
 
       if (isFirst) {
         videos.forEach(videoRow => {
@@ -348,7 +365,7 @@
           }
           const caption = createCaption(videoRow.caption);
           if (caption) figure.append(caption);
-          div.append(figure);
+          inner.append(figure);
         });
 
         photos.forEach(photo => {
@@ -362,14 +379,14 @@
           figure.append(image);
           const caption = createCaption(photo.caption);
           if (caption) figure.append(caption);
-          div.append(figure);
+          inner.append(figure);
         });
       }
 
       const num = document.createElement("div");
       num.className = "page-number";
       num.textContent = `${pageNum}`;
-      div.append(num);
+      div.append(inner, num);
       return div;
     }
 
@@ -447,27 +464,28 @@
           const entryVideos = usableVideos.filter(v => v.entry_id === entry.id);
           const chunks = splitContent(entry.content || "");
           chunks.forEach((chunk, i) => {
-            pageElements.push(createPage(entry, chunk, entryPhotos, entryVideos, pageCounter, 0, i === 0));
+            pageElements.push(createPage(entry, chunk, entryPhotos, entryVideos, pageCounter, i === 0));
             pageCounter++;
           });
         });
 
         pageFlip = new St.PageFlip(bookEl, {
-          width: 920,
-          height: 760,
+          width: 980,
+          height: 860,
           size: "stretch",
-          minWidth: 320,
-          maxWidth: 1000,
-          minHeight: 480,
-          maxHeight: 900,
+          minWidth: 340,
+          maxWidth: 1100,
+          minHeight: 520,
+          maxHeight: 980,
           showCover: true,
           drawShadow: true,
-          flippingTime: 750,
+          flippingTime: 700,
           usePortrait: true,
           autoSize: true,
-          maxShadowOpacity: 0.3,
+          maxShadowOpacity: 0.28,
           mobileScrollSupport: false,
-          swipeDistance: 40
+          useMouseEvents: false,
+          swipeDistance: 50
         });
 
         pageFlip.loadFromHTML(pageElements);
