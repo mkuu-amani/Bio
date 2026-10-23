@@ -76,9 +76,7 @@
       margin-inline: auto;
       flex: 0 0 auto;
     }
-    #book .stf__parent {
-      margin-inline: auto;
-    }
+    #book .stf__parent { margin-inline: auto; }
     .page {
       background: var(--page);
       color: var(--page-text);
@@ -105,8 +103,7 @@
     .page-inner figure { margin-inline: 0; }
     .page.cover,
     .page.back-cover {
-      background:
-        linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
+      background: linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
       color: #f1eee8;
     }
     .page.cover .page-inner,
@@ -130,7 +127,14 @@
     .back-cover p { max-width: 300px; color: #d4cfc6; font-size: 15px; line-height: 1.7; margin: 0 auto; }
     .page .entry-meta { color: var(--gold); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 12px; }
     .page h3 { font: 400 clamp(24px, 3vw, 32px)/1.18 var(--serif); margin: 0 0 16px; color: #1a1612; }
-    .page .entry-content { font-size: 15.5px; line-height: 1.9; color: #3a3632; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .page .entry-content p {
+      font-size: 15.5px;
+      line-height: 1.9;
+      color: #3a3632;
+      margin: 0 0 1.1em;
+      overflow-wrap: anywhere;
+    }
+    .page .entry-content p:last-child { margin-bottom: 0; }
     .page .entry-media { margin: 1.2rem 0; }
     .page .entry-media img,
     .page .entry-media video,
@@ -141,15 +145,9 @@
       border: 0;
       border-radius: 2px;
     }
-    .page .entry-media img {
-      height: auto;
-      object-fit: contain;
-    }
+    .page .entry-media img { height: auto; object-fit: contain; }
     .page .entry-media video,
-    .page .entry-media iframe {
-      aspect-ratio: 16/9;
-      background: #111;
-    }
+    .page .entry-media iframe { aspect-ratio: 16/9; background: #111; }
     .page figcaption { margin-top: .45rem; color: var(--page-muted); font-size: .8rem; }
     .page-number { position: absolute; bottom: 26px; right: 34px; font-size: 10px; letter-spacing: .12em; color: var(--page-muted); }
     .book-nav {
@@ -194,7 +192,7 @@
       #book { width: 100%; height: clamp(560px, 74vh, 720px); }
       .page-inner { margin: 9px; height: calc(100% - 18px); padding: 26px 17px 44px; }
       .page h3 { font-size: clamp(22px, 6vw, 28px); }
-      .page .entry-content { font-size: 14px; line-height: 1.8; }
+      .page .entry-content p { font-size: 14px; line-height: 1.8; }
       .cover-mark { font-size: 48px; }
       .book-nav { gap: 10px; }
       .book-nav button { padding: 9px 12px; font-size: 10px; }
@@ -293,25 +291,34 @@
       return div;
     }
 
+    // Split on paragraph boundaries first, then fall back to character limits
     function splitContent(text) {
-      if (!text) return [""];
-      const words = text.split(/\s+/);
+      if (!text) return [[]];
+      const paragraphs = text
+        .split(/\n\s*\n/)
+        .map(p => p.trim().replace(/\s+/g, " "))
+        .filter(Boolean);
+
       const pages = [];
-      let current = "";
-      for (const word of words) {
-        const next = current ? current + " " + word : word;
-        if (next.length > CHARS_PER_PAGE && current) {
-          pages.push(current);
-          current = word;
+      let currentPage = [];
+      let currentLength = 0;
+
+      for (const para of paragraphs) {
+        const paraLen = para.length;
+        if (currentLength + paraLen > CHARS_PER_PAGE && currentPage.length > 0) {
+          pages.push(currentPage);
+          currentPage = [para];
+          currentLength = paraLen;
         } else {
-          current = next;
+          currentPage.push(para);
+          currentLength += paraLen + 2;
         }
       }
-      if (current) pages.push(current);
-      return pages.length ? pages : [""];
+      if (currentPage.length) pages.push(currentPage);
+      return pages.length ? pages : [[]];
     }
 
-    function createPage(entry, contentChunk, photos = [], videos = [], pageNum, isFirst) {
+    function createPage(entry, paragraphs, photos = [], videos = [], pageNum, isFirst) {
       const div = document.createElement("div");
       div.className = "page";
       const inner = document.createElement("div");
@@ -328,7 +335,11 @@
 
       const content = document.createElement("div");
       content.className = "entry-content";
-      content.textContent = contentChunk;
+      paragraphs.forEach(text => {
+        const p = document.createElement("p");
+        p.textContent = text;
+        content.append(p);
+      });
       inner.append(content);
 
       if (isFirst) {
@@ -469,9 +480,9 @@
         ordered.forEach(entry => {
           const entryPhotos = usablePhotos.filter(p => p.entry_id === entry.id);
           const entryVideos = usableVideos.filter(v => v.entry_id === entry.id);
-          const chunks = splitContent(entry.content || "");
-          chunks.forEach((chunk, i) => {
-            pageElements.push(createPage(entry, chunk, entryPhotos, entryVideos, pageCounter, i === 0));
+          const pages = splitContent(entry.content || "");
+          pages.forEach((paragraphs, i) => {
+            pageElements.push(createPage(entry, paragraphs, entryPhotos, entryVideos, pageCounter, i === 0));
             pageCounter++;
           });
         });
