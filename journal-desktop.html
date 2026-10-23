@@ -145,7 +145,12 @@
       border: 0;
       border-radius: 2px;
     }
-    .page .entry-media img { height: auto; max-height: 480px; object-fit: contain; }
+    .page .entry-media img {
+      height: auto;
+      max-height: 480px;
+      object-fit: contain;
+      cursor: zoom-in;
+    }
     .page .entry-media video,
     .page .entry-media iframe { aspect-ratio: 16/9; max-height: 340px; background: #111; }
     .page.media-page .entry-media img { max-height: 520px; width: auto; max-width: 100%; margin-inline: auto; }
@@ -179,6 +184,42 @@
     }
     footer a { text-decoration: none; }
     .gold { color: var(--gold); }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      cursor: zoom-out;
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img {
+      max-width: 95vw;
+      max-height: 95vh;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.55);
+    }
+    .lightbox .close {
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      color: #fff;
+      font-size: 36px;
+      font-weight: 300;
+      line-height: 1;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      z-index: 1001;
+    }
+    .lightbox .close:hover { color: var(--gold); }
+
     @media (max-width: 900px) {
       .journal-wrap { padding: 28px 2% 64px; }
       #book { height: clamp(580px, 76vh, 780px); }
@@ -257,6 +298,7 @@
       .book-nav button { min-height: 40px; padding: 10px 13px; font-size: 9px; letter-spacing: .1em; }
       .page-indicator { min-width: 70px; font-size: 11px; }
       footer { padding: 22px 7%; font-size: 10px; }
+      .lightbox .close { top: 12px; right: 14px; font-size: 32px; }
     }
     @media (max-width: 380px) {
       .brand { font-size: 14px; }
@@ -307,6 +349,13 @@
     <span>© <span id="year"></span> Mkuu Amani</span>
     <a href="./">Still Becoming <span class="gold">↗</span></a>
   </footer>
+
+  <!-- Fullscreen lightbox -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <button class="close" aria-label="Close fullscreen">&times;</button>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
   <script>
@@ -317,9 +366,40 @@
     const prevBtn = document.getElementById("prev");
     const nextBtn = document.getElementById("next");
     const indicatorEl = document.getElementById("indicator");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightbox-img");
+    const lightboxClose = lightbox.querySelector(".close");
+
     document.getElementById("year").textContent = new Date().getFullYear();
     let pageFlip;
     const CHARS_PER_PAGE = 1600;
+
+    function openLightbox(src, alt) {
+      lightboxImg.src = src;
+      lightboxImg.alt = alt || "Photograph";
+      lightbox.classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("active");
+      lightboxImg.src = "";
+      document.body.style.overflow = "";
+    }
+
+    lightboxClose.addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox || e.target === lightboxImg) closeLightbox();
+    });
+
+    // Click any journal photo to open fullscreen
+    bookEl.addEventListener("click", (e) => {
+      const img = e.target.closest(".entry-media img");
+      if (img && img.src) {
+        e.stopPropagation();
+        openLightbox(img.src, img.alt);
+      }
+    });
 
     function displayDate(value) {
       if (!value) return "A reflection";
@@ -327,14 +407,12 @@
       if (Number.isNaN(date.getTime())) return "A reflection";
       return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" }).format(date);
     }
-
     function createCaption(text) {
       if (!text) return null;
       const caption = document.createElement("figcaption");
       caption.textContent = text;
       return caption;
     }
-
     function createCover() {
       const div = document.createElement("div");
       div.className = "page cover";
@@ -348,7 +426,6 @@
       `;
       return div;
     }
-
     function createBackCover() {
       const div = document.createElement("div");
       div.className = "page back-cover";
@@ -362,31 +439,24 @@
       `;
       return div;
     }
-
     function splitContent(text) {
       if (!text || !text.trim()) return [""];
-
       const normalized = text.replace(/\r\n?/g, "\n").trim();
       const paragraphs = normalized
         .split(/\n\s*\n/)
         .map(paragraph => paragraph.trim())
         .filter(Boolean);
-
       const pages = [];
       let current = "";
-
       function flush() {
         if (current.trim()) pages.push(current.trim());
         current = "";
       }
-
       function addLongParagraph(paragraph) {
         const words = paragraph.split(/\s+/).filter(Boolean);
         let part = "";
-
         for (const word of words) {
           const candidate = part ? `${part} ${word}` : word;
-
           if (candidate.length > CHARS_PER_PAGE && part) {
             if (current) {
               flush();
@@ -398,7 +468,6 @@
             part = candidate;
           }
         }
-
         if (part) {
           if (current && current.length + part.length + 2 > CHARS_PER_PAGE) {
             flush();
@@ -406,14 +475,12 @@
           current = current ? `${current}\n\n${part}` : part;
         }
       }
-
       for (const paragraph of paragraphs) {
         if (paragraph.length > CHARS_PER_PAGE) {
           if (current) flush();
           addLongParagraph(paragraph);
           continue;
         }
-
         const candidate = current ? `${current}\n\n${paragraph}` : paragraph;
         if (candidate.length > CHARS_PER_PAGE && current) {
           flush();
@@ -422,11 +489,9 @@
           current = candidate;
         }
       }
-
       flush();
       return pages.length ? pages : [normalized];
     }
-
     function createPage(entry, contentChunk, pageNum, isFirst) {
       const div = document.createElement("div");
       div.className = "page";
@@ -450,7 +515,6 @@
       div.append(inner, num);
       return div;
     }
-
     function createMediaPage(entry, mediaRow, mediaType, pageNum) {
       const div = document.createElement("div");
       div.className = "page media-page";
@@ -514,7 +578,6 @@
       div.append(inner, num);
       return div;
     }
-
     function updateIndicator() {
       if (!pageFlip) return;
       const current = pageFlip.getCurrentPageIndex();
@@ -529,7 +592,6 @@
       prevBtn.disabled = current === 0;
       nextBtn.disabled = current >= total - 1;
     }
-
     async function loadSignedPhotos(client, photoRows) {
       const results = await Promise.all(
         (photoRows || []).map(async photo => {
@@ -542,7 +604,6 @@
       );
       return results.filter(Boolean);
     }
-
     async function loadSignedVideos(client, videoRows) {
       const results = await Promise.all(
         (videoRows || []).map(async videoRow => {
@@ -557,7 +618,6 @@
       );
       return results.filter(Boolean);
     }
-
     async function loadJournal() {
       try {
         if (!window.supabase || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
@@ -593,13 +653,11 @@
             pageElements.push(createPage(entry, chunk, pageCounter, i === 0));
             pageCounter++;
           });
-          // Keep every photograph on its own page in the normal journal flow.
           entryPhotos.forEach(photo => {
             const mediaPage = createMediaPage(entry, photo, "Photograph", pageCounter);
             if (mediaPage) { pageElements.push(mediaPage); pageCounter++; }
           });
           entryVideos.forEach(videoRow => {
-            // The first valid video is reserved for overall book page 4.
             if (!featuredVideoPage) {
               const mediaPage = createMediaPage(entry, videoRow, "Video", 3);
               if (mediaPage) {
@@ -611,11 +669,7 @@
             if (mediaPage) { pageElements.push(mediaPage); pageCounter++; }
           });
         });
-
         if (featuredVideoPage) {
-          // Page 1 is the cover, so insert the video at array index 3 (overall page 4).
-          // If the journal has fewer than two pages before it, add plain pages so its
-          // position remains page 4 rather than silently moving the video forward.
           while (pageElements.length < 3) {
             const blankPage = document.createElement("div");
             blankPage.className = "page";
@@ -626,8 +680,6 @@
           }
           pageElements.splice(3, 0, featuredVideoPage);
         }
-
-        // Re-number visible page labels after placing the featured video.
         let visiblePageNumber = 1;
         pageElements.forEach(page => {
           if (page.classList.contains("cover") || page.classList.contains("back-cover")) return;
@@ -636,7 +688,6 @@
           visiblePageNumber++;
         });
         pageElements.push(createBackCover());
-
         pageFlip = new St.PageFlip(bookEl, {
           width: window.matchMedia("(max-width: 600px)").matches ? 360 : 560,
           height: window.matchMedia("(max-width: 600px)").matches ? 560 : 780,
@@ -662,10 +713,13 @@
         prevBtn.onclick = () => pageFlip.flipPrev();
         nextBtn.onclick = () => pageFlip.flipNext();
         document.addEventListener("keydown", e => {
+          if (e.key === "Escape" && lightbox.classList.contains("active")) {
+            closeLightbox();
+            return;
+          }
           const target = e.target;
           if (target && (target.isContentEditable ||
               /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName))) return;
-
           if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
             e.preventDefault();
             if (e.key === "ArrowLeft") pageFlip.flipPrev();
