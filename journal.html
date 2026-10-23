@@ -29,7 +29,7 @@
       background: #0b0c0e;
       color: var(--text);
       font-family: var(--sans);
-      line-height: 1.7;
+      line-height: 1.65;
     }
     a { color: inherit; }
     .topbar {
@@ -76,9 +76,7 @@
       margin-inline: auto;
       flex: 0 0 auto;
     }
-    #book .stf__parent {
-      margin-inline: auto;
-    }
+    #book .stf__parent { margin-inline: auto; }
     .page {
       background: var(--page);
       color: var(--page-text);
@@ -88,9 +86,9 @@
       overflow: hidden;
     }
     .page-inner {
-      height: calc(100% - 28px);
-      margin: 14px;
-      padding: 44px 34px 56px;
+      height: calc(100% - 24px);
+      margin: 12px;
+      padding: 32px 28px 44px;
       border: 1px solid rgba(60,45,30,.14);
       border-radius: 2px;
       overflow: hidden;
@@ -100,8 +98,7 @@
     .page-inner figure { margin-inline: 0; }
     .page.cover,
     .page.back-cover {
-      background:
-        linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
+      background: linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
       color: #f1eee8;
     }
     .page.cover .page-inner,
@@ -113,26 +110,32 @@
       justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 36px 24px;
+      padding: 28px 20px;
       overflow: hidden;
     }
-    .cover-mark { font: 400 60px var(--serif); color: var(--gold); margin-bottom: 4px; }
+    .cover-mark { font: 400 52px var(--serif); color: var(--gold); margin-bottom: 2px; }
     .cover h2,
-    .back-cover h2 { font: 400 clamp(32px, 4vw, 46px)/1.05 var(--serif); margin: 0 0 10px; }
+    .back-cover h2 { font: 400 clamp(28px, 3.6vw, 40px)/1.05 var(--serif); margin: 0 0 8px; }
     .cover .cover-sub,
-    .back-cover .cover-sub { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .back-cover .cover-sub { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
     .cover p,
-    .back-cover p { max-width: 300px; color: #d4cfc6; font-size: 15px; line-height: 1.7; margin: 0 auto; }
-    .page .entry-meta { color: var(--gold); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 12px; }
-    .page h3 { font: 400 clamp(24px, 3vw, 32px)/1.18 var(--serif); margin: 0 0 16px; color: #1a1612; }
-    .page .entry-content { font-size: 15.5px; line-height: 1.9; color: #3a3632; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .page .entry-media { margin: .65rem 0; max-width: 100%; }
+    .back-cover p { max-width: 280px; color: #d4cfc6; font-size: 14.5px; line-height: 1.65; margin: 0 auto; }
+    .page .entry-meta { color: var(--gold); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 8px; }
+    .page h3 { font: 400 clamp(22px, 2.8vw, 28px)/1.15 var(--serif); margin: 0 0 10px; color: #1a1612; }
+    .page .entry-content {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: #3a3632;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .page .entry-media { margin: .5rem 0; max-width: 100%; }
     .page.media-page .page-inner {
       display: flex; flex-direction: column; justify-content: center; align-items: center;
-      padding: 34px 28px 48px;
+      padding: 28px 22px 40px;
     }
     .page.media-page .entry-meta { align-self: flex-start; }
-    .page.media-page .entry-media { width: 100%; margin: 8px 0; }
+    .page.media-page .entry-media { width: 100%; margin: 6px 0; }
     .page .entry-media img,
     .page .entry-media video,
     .page .entry-media iframe {
@@ -142,20 +145,14 @@
       border: 0;
       border-radius: 2px;
     }
-    .page .entry-media img {
-      height: auto; max-height: 520px; object-fit: contain;
-    }
+    .page .entry-media img { height: auto; max-height: 480px; object-fit: contain; }
     .page .entry-media video,
-    .page .entry-media iframe {
-      aspect-ratio: 16/9;
-      max-height: 390px;
-      background: #111;
-    }
-    .page.media-page .entry-media img { max-height: 560px; width: auto; max-width: 100%; margin-inline: auto; }
+    .page .entry-media iframe { aspect-ratio: 16/9; max-height: 340px; background: #111; }
+    .page.media-page .entry-media img { max-height: 520px; width: auto; max-width: 100%; margin-inline: auto; }
     .page.media-page .entry-media video,
-    .page.media-page .entry-media iframe { width: 100%; max-height: 430px; }
-    .page figcaption { margin-top: .45rem; color: var(--page-muted); font-size: .8rem; }
-    .page-number { position: absolute; bottom: 26px; right: 34px; font-size: 10px; letter-spacing: .12em; color: var(--page-muted); }
+    .page.media-page .entry-media iframe { width: 100%; max-height: 380px; }
+    .page figcaption { margin-top: .35rem; color: var(--page-muted); font-size: .75rem; }
+    .page-number { position: absolute; bottom: 20px; right: 28px; font-size: 10px; letter-spacing: .1em; color: var(--page-muted); }
     .book-nav {
       display: flex; align-items: center; gap: 16px;
       margin-top: 28px;
@@ -185,7 +182,7 @@
     @media (max-width: 900px) {
       .journal-wrap { padding: 28px 2% 64px; }
       #book { height: clamp(580px, 76vh, 780px); }
-      .page-inner { padding: 34px 24px 50px; }
+      .page-inner { padding: 28px 20px 40px; }
     }
     @media (max-width: 600px) {
       .topbar { padding: 18px 5%; }
@@ -196,10 +193,10 @@
       .intro p { max-width: 100%; }
       .journal-wrap { padding: 24px 10px 52px; }
       #book { width: 100%; height: clamp(560px, 74vh, 720px); }
-      .page-inner { margin: 9px; height: calc(100% - 18px); padding: 26px 17px 44px; }
-      .page h3 { font-size: clamp(22px, 6vw, 28px); }
-      .page .entry-content { font-size: 14px; line-height: 1.8; }
-      .cover-mark { font-size: 48px; }
+      .page-inner { margin: 8px; height: calc(100% - 16px); padding: 22px 14px 36px; }
+      .page h3 { font-size: clamp(20px, 5.5vw, 26px); }
+      .page .entry-content { font-size: 13.5px; line-height: 1.6; }
+      .cover-mark { font-size: 44px; }
       .book-nav { gap: 10px; }
       .book-nav button { padding: 9px 12px; font-size: 10px; }
     }
@@ -253,8 +250,7 @@
     const indicatorEl = document.getElementById("indicator");
     document.getElementById("year").textContent = new Date().getFullYear();
     let pageFlip;
-    // Conservative text limit leaves room for the title and page furniture.
-    const CHARS_PER_PAGE = 620;
+    const CHARS_PER_PAGE = 540;
 
     function displayDate(value) {
       if (!value) return "A reflection";
@@ -303,7 +299,6 @@
       const paragraphs = text.replace(/\r\n?/g, "\n").split(/\n\s*\n/);
       const pages = [];
       let current = "";
-
       function addText(textPart) {
         const words = textPart.split(/\s+/).filter(Boolean);
         for (const word of words) {
@@ -316,7 +311,6 @@
           }
         }
       }
-
       paragraphs.forEach(paragraph => {
         const clean = paragraph.trim();
         if (!clean) return;
@@ -337,7 +331,6 @@
       div.className = "page";
       const inner = document.createElement("div");
       inner.className = "page-inner";
-
       if (isFirst) {
         const meta = document.createElement("div");
         meta.className = "entry-meta";
@@ -346,12 +339,10 @@
         heading.textContent = entry.title || "Untitled reflection";
         inner.append(meta, heading);
       }
-
       const content = document.createElement("div");
       content.className = "entry-content";
       content.textContent = contentChunk;
       inner.append(content);
-
       const num = document.createElement("div");
       num.className = "page-number";
       num.textContent = `${pageNum}`;
@@ -364,15 +355,12 @@
       div.className = "page media-page";
       const inner = document.createElement("div");
       inner.className = "page-inner";
-
       const meta = document.createElement("div");
       meta.className = "entry-meta";
       meta.textContent = `${entry.title || "Untitled reflection"} · ${mediaType}`;
       inner.append(meta);
-
       const figure = document.createElement("figure");
       figure.className = "entry-media";
-
       if (mediaType === "Photograph") {
         if (!mediaRow.signedUrl) return null;
         const image = document.createElement("img");
@@ -416,7 +404,6 @@
       } else {
         return null;
       }
-
       const caption = createCaption(mediaRow.caption);
       if (caption) figure.append(caption);
       inner.append(figure);
@@ -525,13 +512,13 @@
           maxHeight: 860,
           showCover: true,
           drawShadow: true,
-          flippingTime: 700,
+          flippingTime: 650,
           usePortrait: true,
           autoSize: false,
-          maxShadowOpacity: 0.18,
+          maxShadowOpacity: 0.15,
           mobileScrollSupport: false,
           useMouseEvents: false,
-          swipeDistance: 40
+          swipeDistance: 50
         });
         pageFlip.loadFromHTML(pageElements);
         pageFlip.on("flip", updateIndicator);
