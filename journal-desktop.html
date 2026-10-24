@@ -97,31 +97,22 @@
     .page-inner img { max-width: 100%; height: auto; }
     .page-inner figure { margin-inline: 0; }
     .page.cover,
-.page.back-cover {
-  background: #f8f4ed;
-  color: #2a2723;
-}
+    .page.back-cover {
+      background: linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
+      color: #f1eee8;
+    }
     .page.cover .page-inner,
-.page.back-cover .page-inner {
-  background: #faf7f2;
-  border-color: rgba(60,45,30,.14);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 28px 20px;
-  overflow: hidden;
-}
-    .page.cover h2,
-.page.back-cover h2 {
-  color: #2a2723;
-}
-
-.page.cover p,
-.page.back-cover p {
-  color: #6b6560;
-}
+    .page.back-cover .page-inner {
+      background: transparent;
+      border-color: rgba(197,168,117,.22);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 28px 20px;
+      overflow: hidden;
+    }
     .cover-mark { font: 400 52px var(--serif); color: var(--gold); margin-bottom: 2px; }
     .cover h2,
     .back-cover h2 { font: 400 clamp(28px, 3.6vw, 40px)/1.05 var(--serif); margin: 0 0 8px; }
@@ -323,198 +314,6 @@
     @media (prefers-reduced-motion: reduce) {
       .book-nav button { transition: none; }
     }
-    
-/* Paperback cover peel — desktop journal */
-.paperback-peel {
-  position: absolute;
-  inset: 0;
-  z-index: 30;
-  pointer-events: none;
-  perspective: 1800px;
-  transform-style: preserve-3d;
-}
-
-.paperback-peel__sheet {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  background: linear-gradient(
-    110deg,
-    #30271f 0%,
-    #211a15 38%,
-    #17130f 72%,
-    #2b2119 100%
-  );
-  box-shadow:
-    inset -3px 0 5px rgba(0, 0, 0, .25),
-    inset 1px 0 2px rgba(255, 255, 255, .08);
-  will-change: transform, clip-path, filter;
-}
-
-.paperback-peel__sheet::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    105deg,
-    transparent 35%,
-    rgba(255, 255, 255, .025) 49%,
-    rgba(0, 0, 0, .24) 72%,
-    transparent 100%
-  );
-}
-
-.paperback-peel__sheet::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 12px;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, .12),
-    rgba(0, 0, 0, .22),
-    rgba(0, 0, 0, .48)
-  );
-  opacity: .65;
-}
-
-.paperback-peel__artwork {
-  position: absolute;
-  inset: 12px;
-  border: 1px solid rgba(197, 168, 117, .28);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 28px 20px;
-  text-align: center;
-  color: #f1eee8;
-}
-
-.paperback-peel__artwork .mark {
-  color: #c5a875;
-  font: 400 52px "Playfair Display", Georgia, serif;
-  margin-bottom: 2px;
-}
-
-.paperback-peel__artwork .subtitle {
-  color: #c5a875;
-  font: 500 11px "DM Sans", sans-serif;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-
-.paperback-peel__artwork h2 {
-  color: #f1eee8;
-  font: 400 clamp(28px, 3.6vw, 40px)/1.05
-    "Playfair Display", Georgia, serif;
-  margin: 0 0 8px;
-}
-
-.paperback-peel__artwork p {
-  color: #d4cfc6;
-  font: 400 14.5px/1.65 "DM Sans", sans-serif;
-  max-width: 280px;
-  margin: 0 auto;
-}
-
-.paperback-peel.is-opening .paperback-peel__sheet {
-  animation: paperback-peel-open 1050ms cubic-bezier(.25, .7, .2, 1) both;
-}
-
-@keyframes paperback-peel-open {
-  0% {
-    transform: rotateY(0deg) skewY(0deg);
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-    filter: brightness(1);
-  }
-  25% {
-    transform: rotateY(-13deg) skewY(-1deg);
-    clip-path: polygon(0 0, 96% 1%, 91% 50%, 96% 99%, 0 100%);
-    filter: brightness(.88);
-  }
-  55% {
-    transform: rotateY(-48deg) skewY(-2deg);
-    clip-path: polygon(0 0, 76% 4%, 65% 50%, 76% 96%, 0 100%);
-    filter: brightness(.72);
-  }
-  80% {
-    transform: rotateY(-78deg) skewY(-1deg);
-    clip-path: polygon(0 0, 30% 2%, 18% 50%, 30% 98%, 0 100%);
-    filter: brightness(.82);
-  }
-  100% {
-    transform: rotateY(-100deg) skewY(0deg);
-    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
-    filter: brightness(1);
-  }
-}
-
-.paperback-peel.is-closing .paperback-peel__sheet {
-  animation: paperback-peel-close 1050ms cubic-bezier(.25, .7, .2, 1) both;
-}
-
-@keyframes paperback-peel-close {
-  0% {
-    transform: rotateY(-100deg) skewY(0deg);
-    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
-    filter: brightness(1);
-  }
-  25% {
-    transform: rotateY(-78deg) skewY(-1deg);
-    clip-path: polygon(0 0, 30% 2%, 18% 50%, 30% 98%, 0 100%);
-    filter: brightness(.82);
-  }
-  55% {
-    transform: rotateY(-48deg) skewY(-2deg);
-    clip-path: polygon(0 0, 76% 4%, 65% 50%, 76% 96%, 0 100%);
-    filter: brightness(.72);
-  }
-  80% {
-    transform: rotateY(-13deg) skewY(-1deg);
-    clip-path: polygon(0 0, 96% 1%, 91% 50%, 96% 99%, 0 100%);
-    filter: brightness(.88);
-  }
-  100% {
-    transform: rotateY(0deg) skewY(0deg);
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-    filter: brightness(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .paperback-peel.is-opening .paperback-peel__sheet,
-  .paperback-peel.is-closing .paperback-peel__sheet {
-    animation-duration: 1ms;
-  }
-}
-
-/* Position the overlay precisely over the cover */
-#book {
-  position: relative;
-}
-
-.paperback-peel {
-  visibility: hidden;
-}
-
-.paperback-peel.is-opening,
-.paperback-peel.is-closing {
-  visibility: visible;
-}
-
-.paperback-peel.is-opening .paperback-peel__sheet,
-.paperback-peel.is-closing .paperback-peel__sheet {
-  animation-duration: 700ms;
-}
-
   </style>
 </head>
 <body>
@@ -559,802 +358,380 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
-  
-const SUPABASE_URL = "https://ayyxlmqkiakogpyvamhl.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
+  <script>
+    const SUPABASE_URL = "https://ayyxlmqkiakogpyvamhl.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
+    const bookEl = document.getElementById("book");
+    const navEl = document.getElementById("book-nav");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    const indicatorEl = document.getElementById("indicator");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightbox-img");
+    const lightboxClose = lightbox.querySelector(".close");
 
-const bookEl = document.getElementById("book");
-const navEl = document.getElementById("book-nav");
-const prevBtn = document.getElementById("prev");
-const nextBtn = document.getElementById("next");
-const indicatorEl = document.getElementById("indicator");
-const lightbox = document.getElementById("lightbox");
-const lightboxImg = document.getElementById("lightbox-img");
-const lightboxClose = lightbox.querySelector(".close");
+    document.getElementById("year").textContent = new Date().getFullYear();
+    let pageFlip;
+    const CHARS_PER_PAGE = 1600;
 
-document.getElementById("year").textContent = new Date().getFullYear();
-
-let pageFlip = null;
-let keyboardHandlerInstalled = false;
-
-const CHARS_PER_PAGE = 1600;
-
-/*
- * Restore the original dark brown and gold paperback palette.
- * This overrides the accidental cream cover rules in the existing CSS.
- */
-const coverStyle = document.createElement("style");
-
-coverStyle.textContent = `
-  .page.cover,
-  .page.back-cover {
-    background:
-      linear-gradient(
-        145deg,
-        #30271f 0%,
-        #211a15 48%,
-        #17130f 100%
-      );
-    color: #f1eee8;
-    box-shadow:
-      inset 2px 0 4px rgba(255,255,255,.035),
-      inset -3px 0 6px rgba(0,0,0,.2);
-  }
-
-  .page.cover .page-inner,
-  .page.back-cover .page-inner {
-    background: transparent;
-    border-color: rgba(197,168,117,.28);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 28px 20px;
-    overflow: hidden;
-  }
-
-  .page.cover h2,
-  .page.back-cover h2 {
-    color: #f1eee8;
-  }
-
-  .page.cover p,
-  .page.back-cover p {
-    color: #d4cfc6;
-  }
-
-  .page.cover .cover-sub,
-  .page.back-cover .cover-sub,
-  .page.cover .cover-mark,
-  .page.back-cover .cover-mark {
-    color: #c5a875;
-  }
-
-  .page.cover .page-inner::before,
-  .page.back-cover .page-inner::before {
-    content: "";
-    position: absolute;
-    inset: 12px;
-    border: 1px solid rgba(197,168,117,.08);
-    pointer-events: none;
-  }
-
-  #book {
-    position: relative;
-  }
-`;
-
-document.head.appendChild(coverStyle);
-
-/* -------------------- Lightbox -------------------- */
-
-function openLightbox(src, alt) {
-  lightboxImg.src = src;
-  lightboxImg.alt = alt || "Photograph";
-  lightbox.classList.add("active");
-  document.body.style.overflow = "hidden";
-  lightboxClose.focus();
-}
-
-function closeLightbox() {
-  lightbox.classList.remove("active");
-  lightboxImg.src = "";
-  document.body.style.overflow = "";
-}
-
-lightboxClose.addEventListener("click", closeLightbox);
-
-lightbox.addEventListener("click", event => {
-  if (event.target === lightbox) closeLightbox();
-});
-
-bookEl.addEventListener("click", event => {
-  const img = event.target.closest(".entry-media img");
-
-  if (img && img.src) {
-    event.stopPropagation();
-    openLightbox(img.src, img.alt);
-  }
-});
-
-/* -------------------- Page helpers -------------------- */
-
-function displayDate(value) {
-  if (!value) return "A reflection";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "A reflection";
-  }
-
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  }).format(date);
-}
-
-function createCaption(text) {
-  if (!text) return null;
-
-  const caption = document.createElement("figcaption");
-  caption.textContent = text;
-
-  return caption;
-}
-
-function createCover() {
-  const div = document.createElement("div");
-  div.className = "page cover";
-
-  div.innerHTML = `
-    <div class="page-inner">
-      <h2>Mkuu Amani</h2>
-      <div class="cover-mark">—</div>
-      <div class="cover-sub">The Journal</div>
-      <h2>Still Becoming.</h2>
-      <p>
-        A record of the journey.<br>
-        Thoughts, experiences and moments gathered along the way.
-      </p>
-    </div>
-  `;
-
-  return div;
-}
-
-function createBackCover() {
-  const div = document.createElement("div");
-  div.className = "page back-cover";
-
-  div.innerHTML = `
-    <div class="page-inner">
-      <div class="cover-mark">—</div>
-      <div class="cover-sub">The Journal</div>
-      <h2>Still Becoming.</h2>
-      <p>
-        The story continues.<br>
-        More reflections will find their place here in time.
-      </p>
-    </div>
-  `;
-
-  return div;
-}
-
-/*
- * Split long entries into readable pages.
- * Paragraphs are preserved where possible, and long paragraphs
- * are divided at word boundaries rather than in the middle of words.
- */
-function splitContent(text) {
-  if (!text || !text.trim()) return [""];
-
-  const normalized = text.replace(/\r\n?/g, "\n").trim();
-
-  const paragraphs = normalized
-    .split(/\n\s*\n/)
-    .map(paragraph => paragraph.trim())
-    .filter(Boolean);
-
-  const pages = [];
-  let current = "";
-
-  function flush() {
-    if (current.trim()) {
-      pages.push(current.trim());
+    function openLightbox(src, alt) {
+      lightboxImg.src = src;
+      lightboxImg.alt = alt || "Photograph";
+      lightbox.classList.add("active");
+      document.body.style.overflow = "hidden";
     }
 
-    current = "";
-  }
-
-  function addLongParagraph(paragraph) {
-    const words = paragraph.split(/\s+/).filter(Boolean);
-    let part = "";
-
-    for (const word of words) {
-      const candidate = part ? `${part} ${word}` : word;
-
-      if (candidate.length > CHARS_PER_PAGE && part) {
-        current = part;
-        flush();
-        part = word;
-      } else {
-        part = candidate;
-      }
+    function closeLightbox() {
+      lightbox.classList.remove("active");
+      lightboxImg.src = "";
+      document.body.style.overflow = "";
     }
 
-    if (part) {
-      if (
-        current &&
-        current.length + part.length + 2 > CHARS_PER_PAGE
-      ) {
-        flush();
-      }
+    lightboxClose.addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox || e.target === lightboxImg) closeLightbox();
+    });
 
-      current = current ? `${current}\n\n${part}` : part;
+    // Click any journal photo to open fullscreen
+    bookEl.addEventListener("click", (e) => {
+      const img = e.target.closest(".entry-media img");
+      if (img && img.src) {
+        e.stopPropagation();
+        openLightbox(img.src, img.alt);
+      }
+    });
+
+    function displayDate(value) {
+      if (!value) return "A reflection";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "A reflection";
+      return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" }).format(date);
     }
-  }
-
-  for (const paragraph of paragraphs) {
-    if (paragraph.length > CHARS_PER_PAGE) {
-      if (current) flush();
-      addLongParagraph(paragraph);
-      continue;
+    function createCaption(text) {
+      if (!text) return null;
+      const caption = document.createElement("figcaption");
+      caption.textContent = text;
+      return caption;
     }
-
-    const candidate = current
-      ? `${current}\n\n${paragraph}`
-      : paragraph;
-
-    if (candidate.length > CHARS_PER_PAGE && current) {
-      flush();
-      current = paragraph;
-    } else {
-      current = candidate;
-    }
-  }
-
-  flush();
-
-  return pages.length ? pages : [normalized];
-}
-
-/* -------------------- Text pages -------------------- */
-
-function createPage(entry, contentChunk, pageNum, isFirst) {
-  const div = document.createElement("div");
-  div.className = "page";
-
-  const inner = document.createElement("div");
-  inner.className = "page-inner";
-
-  if (isFirst) {
-    const meta = document.createElement("div");
-    meta.className = "entry-meta";
-    meta.textContent = displayDate(entry.published_at);
-
-    const heading = document.createElement("h3");
-    heading.textContent = entry.title || "Untitled reflection";
-
-    inner.append(meta, heading);
-  }
-
-  const content = document.createElement("div");
-  content.className = "entry-content";
-  content.textContent = contentChunk;
-
-  inner.append(content);
-
-  const num = document.createElement("div");
-  num.className = "page-number";
-  num.textContent = String(pageNum);
-
-  div.append(inner, num);
-
-  return div;
-}
-
-/* -------------------- Photo and video pages -------------------- */
-
-function createMediaPage(entry, mediaRow, mediaType, pageNum) {
-  const div = document.createElement("div");
-  div.className = "page media-page";
-
-  const inner = document.createElement("div");
-  inner.className = "page-inner";
-
-  const meta = document.createElement("div");
-  meta.className = "entry-meta";
-  meta.textContent =
-    `${entry.title || "Untitled reflection"} · ${mediaType}`;
-
-  inner.append(meta);
-
-  const figure = document.createElement("figure");
-  figure.className = "entry-media";
-
-  if (mediaType === "Photograph") {
-    if (!mediaRow.signedUrl) return null;
-
-    const image = document.createElement("img");
-
-    image.src = mediaRow.signedUrl;
-    image.alt =
-      mediaRow.caption || "Photograph accompanying this reflection";
-    image.loading = "lazy";
-
-    figure.append(image);
-  } else if (
-    mediaRow.source_type === "upload" &&
-    mediaRow.signedUrl
-  ) {
-    const video = document.createElement("video");
-
-    video.src = mediaRow.signedUrl;
-    video.controls = true;
-    video.playsInline = true;
-    video.preload = "metadata";
-
-    figure.append(video);
-  } else if (mediaRow.source_type === "youtube") {
-    const youtubeId = String(mediaRow.youtube_id || "");
-    const storedUrl = String(mediaRow.video_url || "");
-
-    let embedUrl;
-
-    try {
-      const parsedUrl = new URL(storedUrl);
-      const hostname = parsedUrl.hostname.toLowerCase();
-
-      const isYouTubeHost =
-        hostname === "youtube.com" ||
-        hostname.endsWith(".youtube.com") ||
-        hostname === "youtu.be" ||
-        hostname === "www.youtube-nocookie.com";
-
-      if (!isYouTubeHost) return null;
-
-      if (parsedUrl.pathname === "/playlist") {
-        const playlistId =
-          parsedUrl.searchParams.get("list") || youtubeId;
-
-        if (!/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) {
-          return null;
-        }
-
-        embedUrl =
-          "https://www.youtube-nocookie.com/embed/videoseries?list=" +
-          encodeURIComponent(playlistId);
-      } else if (
-        hostname === "youtu.be"
-      ) {
-        const shortId = parsedUrl.pathname.slice(1);
-
-        if (!/^[A-Za-z0-9_-]{11}$/.test(shortId)) {
-          return null;
-        }
-
-        embedUrl =
-          "https://www.youtube-nocookie.com/embed/" +
-          encodeURIComponent(shortId);
-      } else if (
-        parsedUrl.pathname === "/watch"
-      ) {
-        const videoId =
-          parsedUrl.searchParams.get("v") || youtubeId;
-
-        if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
-          return null;
-        }
-
-        embedUrl =
-          "https://www.youtube-nocookie.com/embed/" +
-          encodeURIComponent(videoId);
-      } else if (
-        parsedUrl.pathname.startsWith("/embed/")
-      ) {
-        const videoId = parsedUrl.pathname.split("/")[2];
-
-        if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
-          return null;
-        }
-
-        embedUrl =
-          "https://www.youtube-nocookie.com/embed/" +
-          encodeURIComponent(videoId);
-      } else {
-        return null;
-      }
-    } catch {
-      return null;
-    }
-
-    const iframe = document.createElement("iframe");
-
-    iframe.src = embedUrl;
-    iframe.title = mediaRow.caption || "YouTube video";
-    iframe.loading = "lazy";
-    iframe.allow =
-      "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-    iframe.allowFullscreen = true;
-    iframe.referrerPolicy = "strict-origin-when-cross-origin";
-
-    figure.append(iframe);
-  } else {
-    return null;
-  }
-
-  const caption = createCaption(mediaRow.caption);
-
-  if (caption) figure.append(caption);
-
-  inner.append(figure);
-
-  const num = document.createElement("div");
-  num.className = "page-number";
-  num.textContent = String(pageNum);
-
-  div.append(inner, num);
-
-  return div;
-}
-
-/* -------------------- Secure media URLs -------------------- */
-
-/*
- * Photos and uploaded videos remain in private storage.
- * The page receives temporary signed URLs only.
- */
-
-async function loadSignedPhotos(client, photoRows) {
-  const results = await Promise.all(
-    (photoRows || []).map(async photo => {
-      try {
-        const { data, error } = await client.storage
-          .from("journal-photos")
-          .createSignedUrl(photo.storage_path, 3600);
-
-        if (error || !data?.signedUrl) return null;
-
-        return {
-          ...photo,
-          signedUrl: data.signedUrl
-        };
-      } catch {
-        return null;
-      }
-    })
-  );
-
-  return results.filter(Boolean);
-}
-
-async function loadSignedVideos(client, videoRows) {
-  const results = await Promise.all(
-    (videoRows || []).map(async videoRow => {
-      if (videoRow.source_type === "youtube") {
-        return videoRow;
-      }
-
-      if (
-        videoRow.source_type !== "upload" ||
-        !videoRow.storage_path
-      ) {
-        return null;
-      }
-
-      try {
-        const { data, error } = await client.storage
-          .from("journal-videos")
-          .createSignedUrl(videoRow.storage_path, 3600);
-
-        if (error || !data?.signedUrl) return null;
-
-        return {
-          ...videoRow,
-          signedUrl: data.signedUrl
-        };
-      } catch {
-        return null;
-      }
-    })
-  );
-
-  return results.filter(Boolean);
-}
-
-/* -------------------- Navigation -------------------- */
-
-function updateIndicator() {
-  if (!pageFlip) return;
-
-  const current = pageFlip.getCurrentPageIndex();
-  const total = pageFlip.getPageCount();
-
-  if (current === 0) {
-    indicatorEl.textContent = "Cover";
-  } else if (current === total - 1) {
-    indicatorEl.textContent = "Back";
-  } else {
-    indicatorEl.textContent = `${current} / ${total - 2}`;
-  }
-
-  prevBtn.disabled = current === 0;
-  nextBtn.disabled = current >= total - 1;
-}
-
-/* -------------------- Load journal -------------------- */
-
-async function loadJournal() {
-  try {
-    if (
-      !window.supabase ||
-      !SUPABASE_URL ||
-      !SUPABASE_PUBLISHABLE_KEY
-    ) {
-      throw new Error("Journal connection not configured.");
-    }
-
-    const client = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY
-    );
-
-    const {
-      data: entries,
-      error: entriesError
-    } = await client.rpc("get_published_journal_entries");
-
-    if (entriesError) throw entriesError;
-
-    if (!entries || entries.length === 0) {
-      bookEl.innerHTML = `
-        <div class="empty">
-          <h3>The story is unfolding.</h3>
-          <p>New reflections will find their place here in time.</p>
+    function createCover() {
+      const div = document.createElement("div");
+      div.className = "page cover";
+      div.innerHTML = `
+        <div class="page-inner">
+          <div class="cover-mark">—</div>
+          <div class="cover-sub">The Journal</div>
+          <h2>Still Becoming.</h2>
+          <p>A record of the journey.<br>Thoughts, experiences and moments gathered along the way.</p>
         </div>
       `;
-
-      return;
+      return div;
     }
-
-    /*
-     * Keep the existing chronological display order.
-     */
-    const ordered = [...entries].reverse();
-
-    const [
-      { data: photoRows, error: photosError },
-      { data: videoRows, error: videosError }
-    ] = await Promise.all([
-      client.rpc("get_published_journal_photos"),
-      client.rpc("get_published_journal_videos")
-    ]);
-
-    const [usablePhotos, usableVideos] = await Promise.all([
-      loadSignedPhotos(client, photosError ? [] : photoRows),
-      loadSignedVideos(client, videosError ? [] : videoRows)
-    ]);
-
-    const pageElements = [createCover()];
-
-    let pageCounter = 1;
-    let featuredVideoPage = null;
-
-    ordered.forEach(entry => {
-      const entryPhotos = usablePhotos.filter(
-        photo => photo.entry_id === entry.id
-      );
-
-      const entryVideos = usableVideos.filter(
-        video => video.entry_id === entry.id
-      );
-
-      const chunks = splitContent(entry.content || "");
-
-      chunks.forEach((chunk, index) => {
-        pageElements.push(
-          createPage(entry, chunk, pageCounter, index === 0)
-        );
-
-        pageCounter++;
-      });
-
-      entryPhotos.forEach(photo => {
-        const mediaPage = createMediaPage(
-          entry,
-          photo,
-          "Photograph",
-          pageCounter
-        );
-
-        if (mediaPage) {
-          pageElements.push(mediaPage);
-          pageCounter++;
+    function createBackCover() {
+      const div = document.createElement("div");
+      div.className = "page back-cover";
+      div.innerHTML = `
+        <div class="page-inner">
+          <div class="cover-mark">—</div>
+          <div class="cover-sub">The Journal</div>
+          <h2>Still Becoming.</h2>
+          <p>The story continues.<br>More reflections will find their place here in time.</p>
+        </div>
+      `;
+      return div;
+    }
+    function splitContent(text) {
+      if (!text || !text.trim()) return [""];
+      const normalized = text.replace(/\r\n?/g, "\n").trim();
+      const paragraphs = normalized
+        .split(/\n\s*\n/)
+        .map(paragraph => paragraph.trim())
+        .filter(Boolean);
+      const pages = [];
+      let current = "";
+      function flush() {
+        if (current.trim()) pages.push(current.trim());
+        current = "";
+      }
+      function addLongParagraph(paragraph) {
+        const words = paragraph.split(/\s+/).filter(Boolean);
+        let part = "";
+        for (const word of words) {
+          const candidate = part ? ${part} ${word} : word;
+          if (candidate.length > CHARS_PER_PAGE && part) {
+            if (current) {
+              flush();
+            }
+            current = part;
+            flush();
+            part = word;
+          } else {
+            part = candidate;
+          }
         }
-      });
-
-      entryVideos.forEach(videoRow => {
-        /*
-         * Preserve the existing feature: the first usable video
-         * appears near the beginning of the book.
-         */
-        if (!featuredVideoPage) {
-          const mediaPage = createMediaPage(
-            entry,
-            videoRow,
-            "Video",
-            3
-          );
-
-          if (mediaPage) {
-            featuredVideoPage = mediaPage;
+        if (part) {
+          if (current && current.length + part.length + 2 > CHARS_PER_PAGE) {
+            flush();
+          }
+          current = current ? ${current}\n\n${part} : part;
+        }
+      }
+      for (const paragraph of paragraphs) {
+        if (paragraph.length > CHARS_PER_PAGE) {
+          if (current) flush();
+          addLongParagraph(paragraph);
+          continue;
+        }
+        const candidate = current ? ${current}\n\n${paragraph} : paragraph;
+        if (candidate.length > CHARS_PER_PAGE && current) {
+          flush();
+          current = paragraph;
+        } else {
+          current = candidate;
+        }
+      }
+      flush();
+      return pages.length ? pages : [normalized];
+    }
+    function createPage(entry, contentChunk, pageNum, isFirst) {
+      const div = document.createElement("div");
+      div.className = "page";
+      const inner = document.createElement("div");
+      inner.className = "page-inner";
+      if (isFirst) {
+        const meta = document.createElement("div");
+        meta.className = "entry-meta";
+        meta.textContent = displayDate(entry.published_at);
+        const heading = document.createElement("h3");
+        heading.textContent = entry.title || "Untitled reflection";
+        inner.append(meta, heading);
+      }
+      const content = document.createElement("div");
+      content.className = "entry-content";
+      content.textContent = contentChunk;
+      inner.append(content);
+      const num = document.createElement("div");
+      num.className = "page-number";
+      num.textContent = ${pageNum};
+      div.append(inner, num);
+      return div;
+    }
+    function createMediaPage(entry, mediaRow, mediaType, pageNum) {
+      const div = document.createElement("div");
+      div.className = "page media-page";
+      const inner = document.createElement("div");
+      inner.className = "page-inner";
+      const meta = document.createElement("div");
+      meta.className = "entry-meta";
+      meta.textContent = ${entry.title || "Untitled reflection"} · ${mediaType};
+      inner.append(meta);
+      const figure = document.createElement("figure");
+      figure.className = "entry-media";
+      if (mediaType === "Photograph") {
+        if (!mediaRow.signedUrl) return null;
+        const image = document.createElement("img");
+        image.src = mediaRow.signedUrl;
+        image.alt = mediaRow.caption || "Photograph accompanying this reflection";
+        image.loading = "lazy";
+        figure.append(image);
+      } else if (mediaRow.source_type === "upload" && mediaRow.signedUrl) {
+        const video = document.createElement("video");
+        video.src = mediaRow.signedUrl;
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = "metadata";
+        figure.append(video);
+      } else if (mediaRow.source_type === "youtube") {
+        const youtubeId = String(mediaRow.youtube_id || "");
+        const storedUrl = String(mediaRow.video_url || "");
+        let embedUrl;
+        try {
+          const parsedUrl = new URL(storedUrl);
+          const hostname = parsedUrl.hostname.toLowerCase();
+          const isYouTubeHost = hostname === "youtube.com" || hostname.endsWith(".youtube.com") || hostname === "youtu.be";
+          const isPlaylist = isYouTubeHost && parsedUrl.pathname === "/playlist";
+          if (isPlaylist) {
+            const playlistId = parsedUrl.searchParams.get("list") || youtubeId;
+            if (!/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) return null;
+            embedUrl = "https://www.youtube-nocookie.com/embed/videoseries?list=" + encodeURIComponent(playlistId);
+          } else {
+            const shortId = hostname === "youtu.be" ? parsedUrl.pathname.slice(1) : youtubeId;
+            if (!/^[A-Za-z0-9_-]{11}$/.test(shortId)) return null;
+            embedUrl = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(shortId);
+          }
+        } catch { return null; }
+        const iframe = document.createElement("iframe");
+        iframe.src = embedUrl;
+        iframe.title = mediaRow.caption || "YouTube video";
+        iframe.loading = "lazy";
+        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+        iframe.allowFullscreen = true;
+        figure.append(iframe);
+      } else {
+        return null;
+      }
+      const caption = createCaption(mediaRow.caption);
+      if (caption) figure.append(caption);
+      inner.append(figure);
+      const num = document.createElement("div");
+      num.className = "page-number";
+      num.textContent = ${pageNum};
+      div.append(inner, num);
+      return div;
+    }
+    function updateIndicator() {
+      if (!pageFlip) return;
+      const current = pageFlip.getCurrentPageIndex();
+      const total = pageFlip.getPageCount();
+      if (current === 0) {
+        indicatorEl.textContent = "Cover";
+      } else if (current === total - 1) {
+        indicatorEl.textContent = "Back";
+      } else {
+        indicatorEl.textContent = ${current} / ${total - 2};
+      }
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current >= total - 1;
+    }
+    async function loadSignedPhotos(client, photoRows) {
+      const results = await Promise.all(
+        (photoRows || []).map(async photo => {
+          try {
+            const { data: signed, error } = await client.storage.from("journal-photos").createSignedUrl(photo.storage_path, 3600);
+            if (error || !signed?.signedUrl) return null;
+            return { ...photo, signedUrl: signed.signedUrl };
+          } catch { return null; }
+        })
+      );
+      return results.filter(Boolean);
+    }
+    async function loadSignedVideos(client, videoRows) {
+      const results = await Promise.all(
+        (videoRows || []).map(async videoRow => {
+          if (videoRow.source_type === "youtube") return videoRow;
+          if (videoRow.source_type !== "upload" || !videoRow.storage_path) return null;
+          try {
+            const { data: signed, error } = await client.storage.from("journal-videos").createSignedUrl(videoRow.storage_path, 3600);
+            if (error || !signed?.signedUrl) return null;
+            return { ...videoRow, signedUrl: signed.signedUrl };
+          } catch { return null; }
+        })
+      );
+      return results.filter(Boolean);
+    }
+    async function loadJournal() {
+      try {
+        if (!window.supabase || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+          throw new Error("Journal connection not configured.");
+        }
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+        const { data: entries, error: entriesError } = await client.rpc("get_published_journal_entries");
+        if (entriesError) throw entriesError;
+        if (!entries || entries.length === 0) {
+          bookEl.innerHTML = <div class="empty"><h3>The story is unfolding.</h3><p>New reflections will find their place here in time.</p></div>;
+          return;
+        }
+        const ordered = [...entries].reverse();
+        const [
+          { data: photoRows, error: photosError },
+          { data: videoRows, error: videosError }
+        ] = await Promise.all([
+          client.rpc("get_published_journal_photos"),
+          client.rpc("get_published_journal_videos")
+        ]);
+        const [usablePhotos, usableVideos] = await Promise.all([
+          loadSignedPhotos(client, photosError ? [] : photoRows),
+          loadSignedVideos(client, videosError ? [] : videoRows)
+        ]);
+        const pageElements = [createCover()];
+        let pageCounter = 1;
+        let featuredVideoPage = null;
+        ordered.forEach(entry => {
+          const entryPhotos = usablePhotos.filter(p => p.entry_id === entry.id);
+          const entryVideos = usableVideos.filter(v => v.entry_id === entry.id);
+          const chunks = splitContent(entry.content || "");
+          chunks.forEach((chunk, i) => {
+            pageElements.push(createPage(entry, chunk, pageCounter, i === 0));
+            pageCounter++;
+          });
+          entryPhotos.forEach(photo => {
+            const mediaPage = createMediaPage(entry, photo, "Photograph", pageCounter);
+            if (mediaPage) { pageElements.push(mediaPage); pageCounter++; }
+          });
+          entryVideos.forEach(videoRow => {
+            if (!featuredVideoPage) {
+              const mediaPage = createMediaPage(entry, videoRow, "Video", 3);
+              if (mediaPage) {
+                featuredVideoPage = mediaPage;
+                return;
+              }
+            }
+            const mediaPage = createMediaPage(entry, videoRow, "Video", pageCounter);
+            if (mediaPage) { pageElements.push(mediaPage); pageCounter++; }
+          });
+        });
+        if (featuredVideoPage) {
+          while (pageElements.length < 3) {
+            const blankPage = document.createElement("div");
+            blankPage.className = "page";
+            const blankInner = document.createElement("div");
+            blankInner.className = "page-inner";
+            blankPage.append(blankInner);
+            pageElements.push(blankPage);
+          }
+          pageElements.splice(3, 0, featuredVideoPage);
+        }
+        let visiblePageNumber = 1;
+        pageElements.forEach(page => {
+          if (page.classList.contains("cover") || page.classList.contains("back-cover")) return;
+          const number = page.querySelector(".page-number");
+          if (number) number.textContent = ${visiblePageNumber};
+          visiblePageNumber++;
+        });
+        pageElements.push(createBackCover());
+        pageFlip = new St.PageFlip(bookEl, {
+          width: window.matchMedia("(max-width: 600px)").matches ? 360 : 560,
+          height: window.matchMedia("(max-width: 600px)").matches ? 560 : 780,
+          size: "stretch",
+          minWidth: window.matchMedia("(max-width: 600px)").matches ? 260 : 280,
+          maxWidth: window.matchMedia("(max-width: 600px)").matches ? 430 : 560,
+          minHeight: 450,
+          maxHeight: 860,
+          showCover: true,
+          drawShadow: true,
+          flippingTime: 750,
+          usePortrait: true,
+          autoSize: false,
+          maxShadowOpacity: 0.15,
+          mobileScrollSupport: false,
+          useMouseEvents: false,
+          swipeDistance: 50
+        });
+        pageFlip.loadFromHTML(pageElements);
+        pageFlip.on("flip", updateIndicator);
+        updateIndicator();
+        navEl.hidden = false;
+        prevBtn.onclick = () => pageFlip.flipPrev();
+        nextBtn.onclick = () => pageFlip.flipNext();
+        document.addEventListener("keydown", e => {
+          if (e.key === "Escape" && lightbox.classList.contains("active")) {
+            closeLightbox();
             return;
           }
-        }
-
-        const mediaPage = createMediaPage(
-          entry,
-          videoRow,
-          "Video",
-          pageCounter
-        );
-
-        if (mediaPage) {
-          pageElements.push(mediaPage);
-          pageCounter++;
-        }
-      });
-    });
-
-    /*
-     * Reserve a suitable position for the featured video.
-     */
-    if (featuredVideoPage) {
-      while (pageElements.length < 3) {
-        const blankPage = document.createElement("div");
-        blankPage.className = "page";
-
-        const blankInner = document.createElement("div");
-        blankInner.className = "page-inner";
-
-        blankPage.append(blankInner);
-        pageElements.push(blankPage);
-      }
-
-      pageElements.splice(3, 0, featuredVideoPage);
-    }
-
-    /*
-     * Renumber content pages after media has been arranged.
-     */
-    let visiblePageNumber = 1;
-
-    pageElements.forEach(page => {
-      if (
-        page.classList.contains("cover") ||
-        page.classList.contains("back-cover")
-      ) {
-        return;
-      }
-
-      const number = page.querySelector(".page-number");
-
-      if (number) {
-        number.textContent = String(visiblePageNumber);
-      }
-
-      visiblePageNumber++;
-    });
-
-    pageElements.push(createBackCover());
-
-    /*
-     * Configure PageFlip once.
-     * The separate overlay animation has deliberately been removed:
-     * PageFlip handles the actual turn, avoiding the duplicate-cover
-     * flash caused by hiding and showing the same cover independently.
-     */
-    const isMobile = window.matchMedia(
-      "(max-width: 600px)"
-    ).matches;
-
-    pageFlip = new St.PageFlip(bookEl, {
-      width: isMobile ? 360 : 560,
-      height: isMobile ? 560 : 780,
-      size: "stretch",
-      minWidth: isMobile ? 260 : 280,
-      maxWidth: isMobile ? 430 : 560,
-      minHeight: 450,
-      maxHeight: 860,
-      showCover: true,
-      drawShadow: true,
-      flippingTime: 700,
-      maxShadowOpacity: 0.10,
-      usePortrait: true,
-      autoSize: false,
-      mobileScrollSupport: false,
-      useMouseEvents: false,
-      swipeDistance: 50
-    });
-
-    pageFlip.loadFromHTML(pageElements);
-
-    pageFlip.on("flip", updateIndicator);
-
-    updateIndicator();
-    navEl.hidden = false;
-
-    prevBtn.onclick = () => {
-      if (pageFlip) pageFlip.flipPrev();
-    };
-
-    nextBtn.onclick = () => {
-      if (pageFlip) pageFlip.flipNext();
-    };
-
-    /*
-     * Register keyboard controls only once.
-     */
-    if (!keyboardHandlerInstalled) {
-      document.addEventListener("keydown", event => {
-        if (
-          event.key === "Escape" &&
-          lightbox.classList.contains("active")
-        ) {
-          closeLightbox();
-          return;
-        }
-
-        const target = event.target;
-
-        if (
-          target &&
-          (
-            target.isContentEditable ||
-            /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName)
-          )
-        ) {
-          return;
-        }
-
-        if (!pageFlip) return;
-
-        if (
-          event.key === "ArrowLeft" ||
-          event.key === "ArrowRight"
-        ) {
-          event.preventDefault();
-
-          if (event.key === "ArrowLeft") {
-            pageFlip.flipPrev();
-          } else {
-            pageFlip.flipNext();
+          const target = e.target;
+          if (target && (target.isContentEditable ||
+              /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName))) return;
+          if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            e.preventDefault();
+            if (e.key === "ArrowLeft") pageFlip.flipPrev();
+            else pageFlip.flipNext();
           }
-        }
-      });
-
-      keyboardHandlerInstalled = true;
+        });
+      } catch (error) {
+        console.error("Journal loading error:", error);
+        bookEl.innerHTML = <p class="status">The journal is temporarily unavailable. Please try again later.</p>;
+      }
     }
-  } catch (error) {
-    console.error("Journal loading error:", error);
-
-    navEl.hidden = true;
-
-    bookEl.innerHTML = `
-      <p class="status">
-        The journal is temporarily unavailable.
-        Please try again later.
-      </p>
-    `;
-  }
-}
-
-loadJournal();
-      </script>
+    loadJournal();
+  </script>
 </body>
 </html>
