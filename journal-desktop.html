@@ -559,10 +559,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
-  <script>
-   
+  
 const SUPABASE_URL = "https://ayyxlmqkiakogpyvamhl.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
 
 const bookEl = document.getElementById("book");
 const navEl = document.getElementById("book-nav");
@@ -575,14 +575,87 @@ const lightboxClose = lightbox.querySelector(".close");
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
-let pageFlip;
+let pageFlip = null;
+let keyboardHandlerInstalled = false;
+
 const CHARS_PER_PAGE = 1600;
+
+/*
+ * Restore the original dark brown and gold paperback palette.
+ * This overrides the accidental cream cover rules in the existing CSS.
+ */
+const coverStyle = document.createElement("style");
+
+coverStyle.textContent = `
+  .page.cover,
+  .page.back-cover {
+    background:
+      linear-gradient(
+        145deg,
+        #30271f 0%,
+        #211a15 48%,
+        #17130f 100%
+      );
+    color: #f1eee8;
+    box-shadow:
+      inset 2px 0 4px rgba(255,255,255,.035),
+      inset -3px 0 6px rgba(0,0,0,.2);
+  }
+
+  .page.cover .page-inner,
+  .page.back-cover .page-inner {
+    background: transparent;
+    border-color: rgba(197,168,117,.28);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 28px 20px;
+    overflow: hidden;
+  }
+
+  .page.cover h2,
+  .page.back-cover h2 {
+    color: #f1eee8;
+  }
+
+  .page.cover p,
+  .page.back-cover p {
+    color: #d4cfc6;
+  }
+
+  .page.cover .cover-sub,
+  .page.back-cover .cover-sub,
+  .page.cover .cover-mark,
+  .page.back-cover .cover-mark {
+    color: #c5a875;
+  }
+
+  .page.cover .page-inner::before,
+  .page.back-cover .page-inner::before {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    border: 1px solid rgba(197,168,117,.08);
+    pointer-events: none;
+  }
+
+  #book {
+    position: relative;
+  }
+`;
+
+document.head.appendChild(coverStyle);
+
+/* -------------------- Lightbox -------------------- */
 
 function openLightbox(src, alt) {
   lightboxImg.src = src;
   lightboxImg.alt = alt || "Photograph";
   lightbox.classList.add("active");
   document.body.style.overflow = "hidden";
+  lightboxClose.focus();
 }
 
 function closeLightbox() {
@@ -599,16 +672,23 @@ lightbox.addEventListener("click", event => {
 
 bookEl.addEventListener("click", event => {
   const img = event.target.closest(".entry-media img");
+
   if (img && img.src) {
     event.stopPropagation();
     openLightbox(img.src, img.alt);
   }
 });
 
+/* -------------------- Page helpers -------------------- */
+
 function displayDate(value) {
   if (!value) return "A reflection";
+
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "A reflection";
+
+  if (Number.isNaN(date.getTime())) {
+    return "A reflection";
+  }
 
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
@@ -619,46 +699,62 @@ function displayDate(value) {
 
 function createCaption(text) {
   if (!text) return null;
+
   const caption = document.createElement("figcaption");
   caption.textContent = text;
+
   return caption;
 }
 
 function createCover() {
   const div = document.createElement("div");
   div.className = "page cover";
+
   div.innerHTML = `
     <div class="page-inner">
       <h2>Mkuu Amani</h2>
       <div class="cover-mark">—</div>
       <div class="cover-sub">The Journal</div>
       <h2>Still Becoming.</h2>
-      <p>A record of the journey.<br>
-      Thoughts, experiences and moments gathered along the way.</p>
+      <p>
+        A record of the journey.<br>
+        Thoughts, experiences and moments gathered along the way.
+      </p>
     </div>
   `;
+
   return div;
 }
 
 function createBackCover() {
   const div = document.createElement("div");
   div.className = "page back-cover";
+
   div.innerHTML = `
     <div class="page-inner">
       <div class="cover-mark">—</div>
       <div class="cover-sub">The Journal</div>
       <h2>Still Becoming.</h2>
-      <p>The story continues.<br>
-      More reflections will find their place here in time.</p>
+      <p>
+        The story continues.<br>
+        More reflections will find their place here in time.
+      </p>
     </div>
   `;
+
   return div;
 }
 
+/*
+ * Split long entries into readable pages.
+ * Paragraphs are preserved where possible, and long paragraphs
+ * are divided at word boundaries rather than in the middle of words.
+ */
 function splitContent(text) {
   if (!text || !text.trim()) return [""];
 
   const normalized = text.replace(/\r\n?/g, "\n").trim();
+
   const paragraphs = normalized
     .split(/\n\s*\n/)
     .map(paragraph => paragraph.trim())
@@ -668,7 +764,10 @@ function splitContent(text) {
   let current = "";
 
   function flush() {
-    if (current.trim()) pages.push(current.trim());
+    if (current.trim()) {
+      pages.push(current.trim());
+    }
+
     current = "";
   }
 
@@ -680,7 +779,6 @@ function splitContent(text) {
       const candidate = part ? `${part} ${word}` : word;
 
       if (candidate.length > CHARS_PER_PAGE && part) {
-        if (current) flush();
         current = part;
         flush();
         part = word;
@@ -690,9 +788,13 @@ function splitContent(text) {
     }
 
     if (part) {
-      if (current && current.length + part.length + 2 > CHARS_PER_PAGE) {
+      if (
+        current &&
+        current.length + part.length + 2 > CHARS_PER_PAGE
+      ) {
         flush();
       }
+
       current = current ? `${current}\n\n${part}` : part;
     }
   }
@@ -717,8 +819,11 @@ function splitContent(text) {
   }
 
   flush();
+
   return pages.length ? pages : [normalized];
 }
+
+/* -------------------- Text pages -------------------- */
 
 function createPage(entry, contentChunk, pageNum, isFirst) {
   const div = document.createElement("div");
@@ -741,15 +846,19 @@ function createPage(entry, contentChunk, pageNum, isFirst) {
   const content = document.createElement("div");
   content.className = "entry-content";
   content.textContent = contentChunk;
+
   inner.append(content);
 
   const num = document.createElement("div");
   num.className = "page-number";
-  num.textContent = `${pageNum}`;
+  num.textContent = String(pageNum);
 
   div.append(inner, num);
+
   return div;
 }
+
+/* -------------------- Photo and video pages -------------------- */
 
 function createMediaPage(entry, mediaRow, mediaType, pageNum) {
   const div = document.createElement("div");
@@ -760,7 +869,9 @@ function createMediaPage(entry, mediaRow, mediaType, pageNum) {
 
   const meta = document.createElement("div");
   meta.className = "entry-meta";
-  meta.textContent = `${entry.title || "Untitled reflection"} · ${mediaType}`;
+  meta.textContent =
+    `${entry.title || "Untitled reflection"} · ${mediaType}`;
+
   inner.append(meta);
 
   const figure = document.createElement("figure");
@@ -770,22 +881,29 @@ function createMediaPage(entry, mediaRow, mediaType, pageNum) {
     if (!mediaRow.signedUrl) return null;
 
     const image = document.createElement("img");
-    image.src = mediaRow.signedUrl;
-    image.alt = mediaRow.caption || "Photograph accompanying this reflection";
-    image.loading = "lazy";
-    figure.append(image);
 
-  } else if (mediaRow.source_type === "upload" && mediaRow.signedUrl) {
+    image.src = mediaRow.signedUrl;
+    image.alt =
+      mediaRow.caption || "Photograph accompanying this reflection";
+    image.loading = "lazy";
+
+    figure.append(image);
+  } else if (
+    mediaRow.source_type === "upload" &&
+    mediaRow.signedUrl
+  ) {
     const video = document.createElement("video");
+
     video.src = mediaRow.signedUrl;
     video.controls = true;
     video.playsInline = true;
     video.preload = "metadata";
-    figure.append(video);
 
+    figure.append(video);
   } else if (mediaRow.source_type === "youtube") {
     const youtubeId = String(mediaRow.youtube_id || "");
     const storedUrl = String(mediaRow.video_url || "");
+
     let embedUrl;
 
     try {
@@ -795,59 +913,161 @@ function createMediaPage(entry, mediaRow, mediaType, pageNum) {
       const isYouTubeHost =
         hostname === "youtube.com" ||
         hostname.endsWith(".youtube.com") ||
-        hostname === "youtu.be";
+        hostname === "youtu.be" ||
+        hostname === "www.youtube-nocookie.com";
 
       if (!isYouTubeHost) return null;
 
       if (parsedUrl.pathname === "/playlist") {
-        const playlistId = parsedUrl.searchParams.get("list") || youtubeId;
+        const playlistId =
+          parsedUrl.searchParams.get("list") || youtubeId;
 
-        if (!/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) return null;
+        if (!/^[A-Za-z0-9_-]{10,100}$/.test(playlistId)) {
+          return null;
+        }
 
         embedUrl =
           "https://www.youtube-nocookie.com/embed/videoseries?list=" +
           encodeURIComponent(playlistId);
-      } else {
-        const shortId =
-          hostname === "youtu.be"
-            ? parsedUrl.pathname.slice(1)
-            : youtubeId;
+      } else if (
+        hostname === "youtu.be"
+      ) {
+        const shortId = parsedUrl.pathname.slice(1);
 
-        if (!/^[A-Za-z0-9_-]{11}$/.test(shortId)) return null;
+        if (!/^[A-Za-z0-9_-]{11}$/.test(shortId)) {
+          return null;
+        }
 
         embedUrl =
           "https://www.youtube-nocookie.com/embed/" +
           encodeURIComponent(shortId);
+      } else if (
+        parsedUrl.pathname === "/watch"
+      ) {
+        const videoId =
+          parsedUrl.searchParams.get("v") || youtubeId;
+
+        if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+          return null;
+        }
+
+        embedUrl =
+          "https://www.youtube-nocookie.com/embed/" +
+          encodeURIComponent(videoId);
+      } else if (
+        parsedUrl.pathname.startsWith("/embed/")
+      ) {
+        const videoId = parsedUrl.pathname.split("/")[2];
+
+        if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+          return null;
+        }
+
+        embedUrl =
+          "https://www.youtube-nocookie.com/embed/" +
+          encodeURIComponent(videoId);
+      } else {
+        return null;
       }
     } catch {
       return null;
     }
 
     const iframe = document.createElement("iframe");
+
     iframe.src = embedUrl;
     iframe.title = mediaRow.caption || "YouTube video";
     iframe.loading = "lazy";
     iframe.allow =
       "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
     iframe.allowFullscreen = true;
-    figure.append(iframe);
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
 
+    figure.append(iframe);
   } else {
     return null;
   }
 
   const caption = createCaption(mediaRow.caption);
+
   if (caption) figure.append(caption);
 
   inner.append(figure);
 
   const num = document.createElement("div");
   num.className = "page-number";
-  num.textContent = `${pageNum}`;
+  num.textContent = String(pageNum);
 
   div.append(inner, num);
+
   return div;
 }
+
+/* -------------------- Secure media URLs -------------------- */
+
+/*
+ * Photos and uploaded videos remain in private storage.
+ * The page receives temporary signed URLs only.
+ */
+
+async function loadSignedPhotos(client, photoRows) {
+  const results = await Promise.all(
+    (photoRows || []).map(async photo => {
+      try {
+        const { data, error } = await client.storage
+          .from("journal-photos")
+          .createSignedUrl(photo.storage_path, 3600);
+
+        if (error || !data?.signedUrl) return null;
+
+        return {
+          ...photo,
+          signedUrl: data.signedUrl
+        };
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  return results.filter(Boolean);
+}
+
+async function loadSignedVideos(client, videoRows) {
+  const results = await Promise.all(
+    (videoRows || []).map(async videoRow => {
+      if (videoRow.source_type === "youtube") {
+        return videoRow;
+      }
+
+      if (
+        videoRow.source_type !== "upload" ||
+        !videoRow.storage_path
+      ) {
+        return null;
+      }
+
+      try {
+        const { data, error } = await client.storage
+          .from("journal-videos")
+          .createSignedUrl(videoRow.storage_path, 3600);
+
+        if (error || !data?.signedUrl) return null;
+
+        return {
+          ...videoRow,
+          signedUrl: data.signedUrl
+        };
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  return results.filter(Boolean);
+}
+
+/* -------------------- Navigation -------------------- */
 
 function updateIndicator() {
   if (!pageFlip) return;
@@ -867,55 +1087,15 @@ function updateIndicator() {
   nextBtn.disabled = current >= total - 1;
 }
 
-async function loadSignedPhotos(client, photoRows) {
-  const results = await Promise.all(
-    (photoRows || []).map(async photo => {
-      try {
-        const { data, error } = await client.storage
-          .from("journal-photos")
-          .createSignedUrl(photo.storage_path, 3600);
-
-        if (error || !data?.signedUrl) return null;
-
-        return { ...photo, signedUrl: data.signedUrl };
-      } catch {
-        return null;
-      }
-    })
-  );
-
-  return results.filter(Boolean);
-}
-
-async function loadSignedVideos(client, videoRows) {
-  const results = await Promise.all(
-    (videoRows || []).map(async videoRow => {
-      if (videoRow.source_type === "youtube") return videoRow;
-
-      if (videoRow.source_type !== "upload" || !videoRow.storage_path) {
-        return null;
-      }
-
-      try {
-        const { data, error } = await client.storage
-          .from("journal-videos")
-          .createSignedUrl(videoRow.storage_path, 3600);
-
-        if (error || !data?.signedUrl) return null;
-
-        return { ...videoRow, signedUrl: data.signedUrl };
-      } catch {
-        return null;
-      }
-    })
-  );
-
-  return results.filter(Boolean);
-}
+/* -------------------- Load journal -------------------- */
 
 async function loadJournal() {
   try {
-    if (!window.supabase || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    if (
+      !window.supabase ||
+      !SUPABASE_URL ||
+      !SUPABASE_PUBLISHABLE_KEY
+    ) {
       throw new Error("Journal connection not configured.");
     }
 
@@ -924,8 +1104,10 @@ async function loadJournal() {
       SUPABASE_PUBLISHABLE_KEY
     );
 
-    const { data: entries, error: entriesError } =
-      await client.rpc("get_published_journal_entries");
+    const {
+      data: entries,
+      error: entriesError
+    } = await client.rpc("get_published_journal_entries");
 
     if (entriesError) throw entriesError;
 
@@ -936,9 +1118,13 @@ async function loadJournal() {
           <p>New reflections will find their place here in time.</p>
         </div>
       `;
+
       return;
     }
 
+    /*
+     * Keep the existing chronological display order.
+     */
     const ordered = [...entries].reverse();
 
     const [
@@ -955,22 +1141,35 @@ async function loadJournal() {
     ]);
 
     const pageElements = [createCover()];
+
     let pageCounter = 1;
     let featuredVideoPage = null;
 
     ordered.forEach(entry => {
-      const entryPhotos = usablePhotos.filter(p => p.entry_id === entry.id);
-      const entryVideos = usableVideos.filter(v => v.entry_id === entry.id);
+      const entryPhotos = usablePhotos.filter(
+        photo => photo.entry_id === entry.id
+      );
+
+      const entryVideos = usableVideos.filter(
+        video => video.entry_id === entry.id
+      );
+
       const chunks = splitContent(entry.content || "");
 
-      chunks.forEach((chunk, i) => {
-        pageElements.push(createPage(entry, chunk, pageCounter, i === 0));
+      chunks.forEach((chunk, index) => {
+        pageElements.push(
+          createPage(entry, chunk, pageCounter, index === 0)
+        );
+
         pageCounter++;
       });
 
       entryPhotos.forEach(photo => {
         const mediaPage = createMediaPage(
-          entry, photo, "Photograph", pageCounter
+          entry,
+          photo,
+          "Photograph",
+          pageCounter
         );
 
         if (mediaPage) {
@@ -980,8 +1179,17 @@ async function loadJournal() {
       });
 
       entryVideos.forEach(videoRow => {
+        /*
+         * Preserve the existing feature: the first usable video
+         * appears near the beginning of the book.
+         */
         if (!featuredVideoPage) {
-          const mediaPage = createMediaPage(entry, videoRow, "Video", 3);
+          const mediaPage = createMediaPage(
+            entry,
+            videoRow,
+            "Video",
+            3
+          );
 
           if (mediaPage) {
             featuredVideoPage = mediaPage;
@@ -990,7 +1198,10 @@ async function loadJournal() {
         }
 
         const mediaPage = createMediaPage(
-          entry, videoRow, "Video", pageCounter
+          entry,
+          videoRow,
+          "Video",
+          pageCounter
         );
 
         if (mediaPage) {
@@ -1000,6 +1211,9 @@ async function loadJournal() {
       });
     });
 
+    /*
+     * Reserve a suitable position for the featured video.
+     */
     if (featuredVideoPage) {
       while (pageElements.length < 3) {
         const blankPage = document.createElement("div");
@@ -1015,22 +1229,39 @@ async function loadJournal() {
       pageElements.splice(3, 0, featuredVideoPage);
     }
 
+    /*
+     * Renumber content pages after media has been arranged.
+     */
     let visiblePageNumber = 1;
 
     pageElements.forEach(page => {
       if (
         page.classList.contains("cover") ||
         page.classList.contains("back-cover")
-      ) return;
+      ) {
+        return;
+      }
 
       const number = page.querySelector(".page-number");
-      if (number) number.textContent = `${visiblePageNumber}`;
+
+      if (number) {
+        number.textContent = String(visiblePageNumber);
+      }
+
       visiblePageNumber++;
     });
 
     pageElements.push(createBackCover());
 
-    const isMobile = window.matchMedia("(max-width: 600px)").matches;
+    /*
+     * Configure PageFlip once.
+     * The separate overlay animation has deliberately been removed:
+     * PageFlip handles the actual turn, avoiding the duplicate-cover
+     * flash caused by hiding and showing the same cover independently.
+     */
+    const isMobile = window.matchMedia(
+      "(max-width: 600px)"
+    ).matches;
 
     pageFlip = new St.PageFlip(bookEl, {
       width: isMobile ? 360 : 560,
@@ -1052,278 +1283,78 @@ async function loadJournal() {
     });
 
     pageFlip.loadFromHTML(pageElements);
+
     pageFlip.on("flip", updateIndicator);
 
     updateIndicator();
     navEl.hidden = false;
 
-    prevBtn.onclick = () => pageFlip.flipPrev();
-    nextBtn.onclick = () => pageFlip.flipNext();
+    prevBtn.onclick = () => {
+      if (pageFlip) pageFlip.flipPrev();
+    };
 
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape" && lightbox.classList.contains("active")) {
-        closeLightbox();
-        return;
-      }
+    nextBtn.onclick = () => {
+      if (pageFlip) pageFlip.flipNext();
+    };
 
-      const target = event.target;
+    /*
+     * Register keyboard controls only once.
+     */
+    if (!keyboardHandlerInstalled) {
+      document.addEventListener("keydown", event => {
+        if (
+          event.key === "Escape" &&
+          lightbox.classList.contains("active")
+        ) {
+          closeLightbox();
+          return;
+        }
 
-      if (
-        target &&
-        (
-          target.isContentEditable ||
-          /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName)
-        )
-      ) return;
+        const target = event.target;
 
-      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-        event.preventDefault();
+        if (
+          target &&
+          (
+            target.isContentEditable ||
+            /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName)
+          )
+        ) {
+          return;
+        }
 
-        if (event.key === "ArrowLeft") pageFlip.flipPrev();
-        else pageFlip.flipNext();
-      }
-    });
+        if (!pageFlip) return;
 
+        if (
+          event.key === "ArrowLeft" ||
+          event.key === "ArrowRight"
+        ) {
+          event.preventDefault();
+
+          if (event.key === "ArrowLeft") {
+            pageFlip.flipPrev();
+          } else {
+            pageFlip.flipNext();
+          }
+        }
+      });
+
+      keyboardHandlerInstalled = true;
+    }
   } catch (error) {
     console.error("Journal loading error:", error);
 
+    navEl.hidden = true;
+
     bookEl.innerHTML = `
       <p class="status">
-        The journal is temporarily unavailable. Please try again later.
+        The journal is temporarily unavailable.
+        Please try again later.
       </p>
     `;
   }
 }
 
 loadJournal();
- {
-      try {
-        if (!window.supabase || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-          throw new Error("Journal connection not configured.");
-        }
-        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-        const { data: entries, error: entriesError } = await client.rpc("get_published_journal_entries");
-        if (entriesError) throw entriesError;
-        if (!entries || entries.length === 0) {
-          bookEl.innerHTML = `<div class="empty"><h3>The story is unfolding.</h3><p>New reflections will find their place here in time.</p></div>`;
-          return;
-        }
-        const ordered = [...entries].reverse();
-        const [
-          { data: photoRows, error: photosError },
-          { data: videoRows, error: videosError }
-        ] = await Promise.all([
-          client.rpc("get_published_journal_photos"),
-          client.rpc("get_published_journal_videos")
-        ]);
-        const [usablePhotos, usableVideos] = await Promise.all([
-          loadSignedPhotos(client, photosError ? [] : photoRows),
-          loadSignedVideos(client, videosError ? [] : videoRows)
-        ]);
-        const pageElements = [createCover()];
-        let pageCounter = 1;
-        let featuredVideoPage = null;
-        ordered.forEach(entry => {
-          const entryPhotos = usablePhotos.filter(p => p.entry_id === entry.id);
-          const entryVideos = usableVideos.filter(v => v.entry_id === entry.id);
-          const chunks = splitContent(entry.content || "");
-          chunks.forEach((chunk, i) => {
-            pageElements.push(createPage(entry, chunk, pageCounter, i === 0));
-            pageCounter++;
-          });
-          entryPhotos.forEach(photo => {
-            const mediaPage = createMediaPage(entry, photo, "Photograph", pageCounter);
-            if (mediaPage) { pageElements.push(mediaPage); pageCounter++; }
-          });
-          entryVideos.forEach(videoRow => {
-            if (!featuredVideoPage) {
-              const mediaPage = createMediaPage(entry, videoRow, "Video", 3);
-              if (mediaPage) {
-                featuredVideoPage = mediaPage;
-                return;
-              }
-            }
-            const mediaPage = createMediaPage(entry, videoRow, "Video", pageCounter);
-            if (mediaPage) { pageElements.push(mediaPage); pageCounter++; }
-          });
-        });
-        if (featuredVideoPage) {
-          while (pageElements.length < 3) {
-            const blankPage = document.createElement("div");
-            blankPage.className = "page";
-            const blankInner = document.createElement("div");
-            blankInner.className = "page-inner";
-            blankPage.append(blankInner);
-            pageElements.push(blankPage);
-          }
-          pageElements.splice(3, 0, featuredVideoPage);
-        }
-        let visiblePageNumber = 1;
-        pageElements.forEach(page => {
-          if (page.classList.contains("cover") || page.classList.contains("back-cover")) return;
-          const number = page.querySelector(".page-number");
-          if (number) number.textContent = `${visiblePageNumber}`;
-          visiblePageNumber++;
-        });
-        pageElements.push(createBackCover());
-        pageFlip = new St.PageFlip(bookEl, {
-          width: window.matchMedia("(max-width: 600px)").matches ? 360 : 560,
-          height: window.matchMedia("(max-width: 600px)").matches ? 560 : 780,
-          size: "stretch",
-          minWidth: window.matchMedia("(max-width: 600px)").matches ? 260 : 280,
-          maxWidth: window.matchMedia("(max-width: 600px)").matches ? 430 : 560,
-          minHeight: 450,
-          maxHeight: 860,
-          showCover: true,
-drawShadow: true,
-flippingTime: 700,
-maxShadowOpacity: 0.10,
-          usePortrait: true,
-          autoSize: false,
-          maxShadowOpacity: 0.15,
-          mobileScrollSupport: false,
-          useMouseEvents: false,
-          swipeDistance: 50
-        });
-        pageFlip.loadFromHTML(pageElements);
-        
-        // Custom paperback cover animation
-        const frontCover = pageElements[0];
-        const backCover = pageElements[pageElements.length - 1];
-        const paperback = document.createElement("div");
-
-        paperback.className = "paperback-peel";
-        paperback.setAttribute("aria-hidden", "true");
-
-        paperback.innerHTML = `
-          <div class="paperback-peel__sheet">
-            <div class="paperback-peel__artwork">
-              <h2>Mkuu Amani</h2>
-              <div class="mark">—</div>
-              <div class="subtitle">The Journal</div>
-              <h2>Still Becoming.</h2>
-              <p>A record of the journey.<br>
-              Thoughts, experiences and moments gathered along the way.</p>
-            </div>
-          </div>
-        `;
-
-        bookEl.appendChild(paperback);
-
-        const paperbackSheet = paperback.querySelector(
-          ".paperback-peel__sheet"
-        );
-        const paperbackArtwork = paperback.querySelector(
-          ".paperback-peel__artwork"
-        );
-
-        let coverAnimationRunning = false;
-        let previousPageIndex = 0;
-
-        function positionPaperback(cover) {
-          const bookRect = bookEl.getBoundingClientRect();
-          const coverRect = cover.getBoundingClientRect();
-
-          paperback.style.left = `${coverRect.left - bookRect.left}px`;
-          paperback.style.top = `${coverRect.top - bookRect.top}px`;
-          paperback.style.width = `${coverRect.width}px`;
-          paperback.style.height = `${coverRect.height}px`;
-        }
-
-        function animatePaperback(direction, cover) {
-          if (coverAnimationRunning || !cover) return;
-
-          coverAnimationRunning = true;
-          positionPaperback(cover);
-
-          paperbackArtwork.innerHTML = direction === "closing"
-            ? `
-              <div class="mark">—</div>
-              <div class="subtitle">The Journal</div>
-              <h2>Still Becoming.</h2>
-              <p>The story continues.<br>
-              More reflections will find their place here in time.</p>
-            `
-            : `
-              <h2>Mkuu Amani</h2>
-              <div class="mark">—</div>
-              <div class="subtitle">The Journal</div>
-              <h2>Still Becoming.</h2>
-              <p>A record of the journey.<br>
-              Thoughts, experiences and moments gathered along the way.</p>
-            `;
-
-          cover.style.visibility = "hidden";
-
-          paperback.classList.remove("is-opening", "is-closing");
-          void paperbackSheet.offsetWidth;
-
-          paperback.classList.add(
-            direction === "opening" ? "is-opening" : "is-closing"
-          );
-
-          function finishAnimation(event) {
-            if (event.target !== paperbackSheet) return;
-
-            paperbackSheet.removeEventListener(
-              "animationend",
-              finishAnimation
-            );
-
-            paperback.classList.remove("is-opening", "is-closing");
-            paperback.style.visibility = "hidden";
-            cover.style.visibility = "";
-            coverAnimationRunning = false;
-          }
-
-          paperbackSheet.addEventListener(
-            "animationend",
-            finishAnimation
-          );
-        }
-
-        pageFlip.on("changeState", event => {
-          if (event.data !== "flipping") return;
-
-          const currentIndex = pageFlip.getCurrentPageIndex();
-          const lastIndex = pageFlip.getPageCount() - 1;
-
-          if (currentIndex === 0) {
-            animatePaperback("opening", frontCover);
-          } else if (currentIndex === lastIndex) {
-            animatePaperback("closing", backCover);
-          }
-        });
-
-        pageFlip.on("flip", () => {
-          previousPageIndex = pageFlip.getCurrentPageIndex();
-        });
-
-        pageFlip.on("flip", updateIndicator);
-        updateIndicator();
-        navEl.hidden = false;
-        prevBtn.onclick = () => pageFlip.flipPrev();
-        nextBtn.onclick = () => pageFlip.flipNext();
-        document.addEventListener("keydown", e => {
-          if (e.key === "Escape" && lightbox.classList.contains("active")) {
-            closeLightbox();
-            return;
-          }
-          const target = e.target;
-          if (target && (target.isContentEditable ||
-              /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName))) return;
-          if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-            e.preventDefault();
-            if (e.key === "ArrowLeft") pageFlip.flipPrev();
-            else pageFlip.flipNext();
-          }
-        });
-      } catch (error) {
-        console.error("Journal loading error:", error);
-        bookEl.innerHTML = `<p class="status">The journal is temporarily unavailable. Please try again later.</p>`;
-      }
-    }
-    loadJournal();
-  </script>
+      </script>
 </body>
 </html>
