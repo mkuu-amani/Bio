@@ -97,31 +97,22 @@
     .page-inner img { max-width: 100%; height: auto; }
     .page-inner figure { margin-inline: 0; }
     .page.cover,
-.page.back-cover {
-  background: #f8f4ed;
-  color: #2a2723;
-}
+    .page.back-cover {
+      background: linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
+      color: #f1eee8;
+    }
     .page.cover .page-inner,
-.page.back-cover .page-inner {
-  background: #faf7f2;
-  border-color: rgba(60,45,30,.14);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 28px 20px;
-  overflow: hidden;
-}
-    .page.cover h2,
-.page.back-cover h2 {
-  color: #2a2723;
-}
-
-.page.cover p,
-.page.back-cover p {
-  color: #6b6560;
-}
+    .page.back-cover .page-inner {
+      background: transparent;
+      border-color: rgba(197,168,117,.22);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 28px 20px;
+      overflow: hidden;
+    }
     .cover-mark { font: 400 52px var(--serif); color: var(--gold); margin-bottom: 2px; }
     .cover h2,
     .back-cover h2 { font: 400 clamp(28px, 3.6vw, 40px)/1.05 var(--serif); margin: 0 0 8px; }
