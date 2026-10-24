@@ -97,22 +97,31 @@
     .page-inner img { max-width: 100%; height: auto; }
     .page-inner figure { margin-inline: 0; }
     .page.cover,
-    .page.back-cover {
-      background: linear-gradient(145deg, #2a221c 0%, #1a1612 45%, #241e18 100%);
-      color: #f1eee8;
-    }
+.page.back-cover {
+  background: #f8f4ed;
+  color: #2a2723;
+}
     .page.cover .page-inner,
-    .page.back-cover .page-inner {
-      background: transparent;
-      border-color: rgba(197,168,117,.22);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 28px 20px;
-      overflow: hidden;
-    }
+.page.back-cover .page-inner {
+  background: #faf7f2;
+  border-color: rgba(60,45,30,.14);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 28px 20px;
+  overflow: hidden;
+}
+    .page.cover h2,
+.page.back-cover h2 {
+  color: #2a2723;
+}
+
+.page.cover p,
+.page.back-cover p {
+  color: #6b6560;
+}
     .cover-mark { font: 400 52px var(--serif); color: var(--gold); margin-bottom: 2px; }
     .cover h2,
     .back-cover h2 { font: 400 clamp(28px, 3.6vw, 40px)/1.05 var(--serif); margin: 0 0 8px; }
@@ -418,6 +427,7 @@
       div.className = "page cover";
       div.innerHTML = `
         <div class="page-inner">
+        <h2>Mkuu Amani</h2>
           <div class="cover-mark">—</div>
           <div class="cover-sub">The Journal</div>
           <h2>Still Becoming.</h2>
@@ -456,7 +466,7 @@
         const words = paragraph.split(/\s+/).filter(Boolean);
         let part = "";
         for (const word of words) {
-          const candidate = part ? ${part} ${word} : word;
+          const candidate = part ? `${part} ${word}` : word;
           if (candidate.length > CHARS_PER_PAGE && part) {
             if (current) {
               flush();
@@ -472,7 +482,7 @@
           if (current && current.length + part.length + 2 > CHARS_PER_PAGE) {
             flush();
           }
-          current = current ? ${current}\n\n${part} : part;
+          current = current ? `${current}\n\n${part}` : part;
         }
       }
       for (const paragraph of paragraphs) {
@@ -481,7 +491,7 @@
           addLongParagraph(paragraph);
           continue;
         }
-        const candidate = current ? ${current}\n\n${paragraph} : paragraph;
+        const candidate = current ? `${current}\n\n${paragraph}` : paragraph;
         if (candidate.length > CHARS_PER_PAGE && current) {
           flush();
           current = paragraph;
@@ -511,7 +521,7 @@
       inner.append(content);
       const num = document.createElement("div");
       num.className = "page-number";
-      num.textContent = ${pageNum};
+      num.textContent = `${pageNum}`;
       div.append(inner, num);
       return div;
     }
@@ -522,7 +532,7 @@
       inner.className = "page-inner";
       const meta = document.createElement("div");
       meta.className = "entry-meta";
-      meta.textContent = ${entry.title || "Untitled reflection"} · ${mediaType};
+      meta.textContent = `${entry.title || "Untitled reflection"} · ${mediaType}`;
       inner.append(meta);
       const figure = document.createElement("figure");
       figure.className = "entry-media";
@@ -574,7 +584,7 @@
       inner.append(figure);
       const num = document.createElement("div");
       num.className = "page-number";
-      num.textContent = ${pageNum};
+      num.textContent = `${pageNum}`;
       div.append(inner, num);
       return div;
     }
@@ -587,7 +597,7 @@
       } else if (current === total - 1) {
         indicatorEl.textContent = "Back";
       } else {
-        indicatorEl.textContent = ${current} / ${total - 2};
+        indicatorEl.textContent = `${current} / ${total - 2}`;
       }
       prevBtn.disabled = current === 0;
       nextBtn.disabled = current >= total - 1;
@@ -627,7 +637,7 @@
         const { data: entries, error: entriesError } = await client.rpc("get_published_journal_entries");
         if (entriesError) throw entriesError;
         if (!entries || entries.length === 0) {
-          bookEl.innerHTML = <div class="empty"><h3>The story is unfolding.</h3><p>New reflections will find their place here in time.</p></div>;
+          bookEl.innerHTML = `<div class="empty"><h3>The story is unfolding.</h3><p>New reflections will find their place here in time.</p></div>`;
           return;
         }
         const ordered = [...entries].reverse();
@@ -684,7 +694,7 @@
         pageElements.forEach(page => {
           if (page.classList.contains("cover") || page.classList.contains("back-cover")) return;
           const number = page.querySelector(".page-number");
-          if (number) number.textContent = ${visiblePageNumber};
+          if (number) number.textContent = `${visiblePageNumber}`;
           visiblePageNumber++;
         });
         pageElements.push(createBackCover());
@@ -728,7 +738,7 @@
         });
       } catch (error) {
         console.error("Journal loading error:", error);
-        bookEl.innerHTML = <p class="status">The journal is temporarily unavailable. Please try again later.</p>;
+        bookEl.innerHTML = `<p class="status">The journal is temporarily unavailable. Please try again later.</p>`;
       }
     }
     loadJournal();
