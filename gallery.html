@@ -1,0 +1,567 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08090c">
+<meta name="description" content="A photographic collection from Still Becoming — Mkuu Amani.">
+<title>The Gallery — Still Becoming</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #08090c;
+  --panel: #111318;
+  --text: #f3efe7;
+  --muted: #a4a3a5;
+  --accent: #d4b47a;
+  --line: rgba(255,255,255,.12);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 50% 0%, #202027 0%, transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+button, a { font: inherit; }
+
+a { color: inherit; text-decoration: none; }
+
+header {
+  max-width: 1500px;
+  margin: auto;
+  padding: 30px 5vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.brand {
+  font-family: system-ui, sans-serif;
+  font-size: .78rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.back-link {
+  font-family: system-ui, sans-serif;
+  font-size: .85rem;
+  color: var(--muted);
+  transition: color .2s;
+}
+
+.back-link:hover { color: var(--accent); }
+
+.intro {
+  text-align: center;
+  padding: 65px 20px 55px;
+}
+
+.eyebrow {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: .25em;
+  font:  .7rem system-ui, sans-serif;
+}
+
+h1 {
+  font-size: clamp(3rem, 9vw, 6.5rem);
+  font-weight: 400;
+  line-height: 1;
+  margin: 20px 0;
+  letter-spacing: -.045em;
+}
+
+.intro p {
+  color: var(--muted);
+  font-size: 1.05rem;
+  font-style: italic;
+  max-width: 500px;
+  margin: auto;
+  line-height: 1.8;
+}
+
+.counter {
+  margin-top: 28px;
+  font: .75rem system-ui, sans-serif;
+  letter-spacing: .12em;
+  color: var(--muted);
+}
+
+.gallery-wrap {
+  max-width: 1500px;
+  margin: auto;
+  padding: 0 5vw 90px;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.gallery-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  cursor: pointer;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.gallery-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .7s cubic-bezier(.2,.7,.2,1), opacity .5s;
+}
+
+.gallery-card:hover img {
+  transform: scale(1.045);
+  opacity: .82;
+}
+
+.card-caption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 45px 18px 16px;
+  background: linear-gradient(transparent, rgba(0,0,0,.8));
+  color: white;
+  font-size: .95rem;
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+.gallery-card:hover .card-caption,
+.gallery-card:focus-visible .card-caption {
+  opacity: 1;
+}
+
+#loading, #empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 80px 20px;
+  font-style: italic;
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  text-align: center;
+  padding: 35px 20px;
+  color: var(--muted);
+  font: .75rem system-ui, sans-serif;
+  letter-spacing: .12em;
+}
+
+/* FULL-SCREEN VIEWER */
+
+#viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(5,6,9,.97);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s, visibility .3s;
+}
+
+#viewer.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.viewer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  font: .8rem system-ui, sans-serif;
+  color: var(--muted);
+}
+
+.viewer-close {
+  background: none;
+  border: 1px solid var(--line);
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.viewer-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 85px;
+  position: relative;
+}
+
+#viewer-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+}
+
+.viewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255,255,255,.07);
+  color: white;
+  cursor: pointer;
+  font-size: 1.8rem;
+}
+
+#previous { left: 20px; }
+#next { right: 20px; }
+
+.viewer-bottom {
+  padding: 12px 20px 20px;
+  text-align: center;
+}
+
+#viewer-caption {
+  min-height: 28px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+#viewer-position {
+  color: var(--muted);
+  font: .7rem system-ui, sans-serif;
+  margin: 5px 0 14px;
+}
+
+.thumbnails {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 5px;
+}
+
+.thumb {
+  width: 58px;
+  height: 43px;
+  flex: 0 0 auto;
+  border: 1px solid transparent;
+  opacity: .48;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.thumb.active {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+[hidden] { display: none !important; }
+
+@media (max-width: 850px) {
+  .gallery-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+@media (max-width: 550px) {
+  header { padding: 22px 20px; }
+  .intro { padding: 65px 20px 40px; }
+  .gallery-wrap { padding: 0 12px 60px; }
+  .gallery-grid { gap: 8px; }
+  .gallery-card { aspect-ratio: 1 / 1.15; }
+  .card-caption { opacity: 1; padding: 30px 10px 10px; font-size: .78rem; }
+  .viewer-stage { padding: 10px 5px; }
+  .viewer-nav {
+    top: auto;
+    bottom: 10px;
+    transform: none;
+    width: 42px;
+    height: 46px;
+  }
+  #previous { left: 12px; }
+  #next { right: 12px; }
+  .viewer-bottom { padding-bottom: 12px; }
+  .thumb { width: 48px; height: 37px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <a class="brand" href="./">STILL BECOMING</a>
+  <a class="back-link" href="./">← Back to my space</a>
+</header>
+
+<section class="intro">
+  <div class="eyebrow">Mkuu Amani · A visual journal</div>
+  <h1>The Gallery.</h1>
+  <p>
+    Moments, places and perspectives.
+    A collection of memories gathered along the way.
+  </p>
+  <div class="counter" id="counter">A COLLECTION IN PROGRESS</div>
+</section>
+
+<main class="gallery-wrap">
+  <div id="loading">Gathering the photographs…</div>
+  <div id="empty" hidden>
+    The gallery is taking shape. Please return soon.
+  </div>
+  <div class="gallery-grid" id="gallery-grid"></div>
+</main>
+
+<footer>
+  STILL BECOMING · LIVING TO LEARN · LEARNING TO LIVE
+</footer>
+
+<div id="viewer" aria-hidden="true">
+  <div class="viewer-top">
+    <span>STILL BECOMING · THE GALLERY</span>
+    <button class="viewer-close" id="close-viewer"
+      type="button" aria-label="Close gallery">×</button>
+  </div>
+
+  <div class="viewer-stage">
+    <button class="viewer-nav" id="previous"
+      type="button" aria-label="Previous photograph">‹</button>
+    <img id="viewer-image" src="" alt="">
+    <button class="viewer-nav" id="next"
+      type="button" aria-label="Next photograph">›</button>
+  </div>
+
+  <div class="viewer-bottom">
+    <div id="viewer-caption"></div>
+    <div id="viewer-position"></div>
+    <div class="thumbnails" id="thumbnails"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://ayyxlmqkiakogpyvamhl.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_jY_6T6L2y2nXaLpA7YZ7EA_dEaS-m68";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const grid = document.getElementById("gallery-grid");
+const loading = document.getElementById("loading");
+const empty = document.getElementById("empty");
+const viewer = document.getElementById("viewer");
+const viewerImage = document.getElementById("viewer-image");
+const viewerCaption = document.getElementById("viewer-caption");
+const viewerPosition = document.getElementById("viewer-position");
+const thumbnails = document.getElementById("thumbnails");
+
+let photographs = [];
+let currentIndex = 0;
+
+async function loadGallery() {
+  loading.hidden = false;
+  empty.hidden = true;
+
+  const { data, error } = await client
+    .from("gallery_photos")
+    .select("id,storage_path,caption,alt_text,sort_order")
+    .eq("is_published", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("Gallery loading error:", error);
+    loading.textContent =
+      "The gallery is temporarily unavailable. Please try again later.";
+    return;
+  }
+
+  photographs = [];
+
+  for (const photo of data || []) {
+    const { data: signed, error: signError } = await client.storage
+      .from("journal-photos")
+      .createSignedUrl(photo.storage_path, 3600);
+
+    if (signError || !signed?.signedUrl) {
+      console.error("Photograph unavailable:", signError);
+      continue;
+    }
+
+    photographs.push({
+      ...photo,
+      imageUrl: signed.signedUrl
+    });
+  }
+
+  loading.hidden = true;
+
+  if (photographs.length === 0) {
+    empty.hidden = false;
+    document.getElementById("counter").textContent =
+      "A COLLECTION IN PROGRESS";
+    return;
+  }
+
+  document.getElementById("counter").textContent =
+    photographs.length + (photographs.length === 1
+      ? " PHOTOGRAPH"
+      : " PHOTOGRAPHS");
+
+  renderGallery();
+}
+
+function renderGallery() {
+  grid.replaceChildren();
+
+  photographs.forEach((photo, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "gallery-card";
+    button.setAttribute(
+      "aria-label",
+      "Open photograph " + (index + 1)
+    );
+
+    const image = document.createElement("img");
+    image.src = photo.imageUrl;
+    image.alt = photo.alt_text || photo.caption || "Gallery photograph";
+    image.loading = "lazy";
+
+    const caption = document.createElement("span");
+    caption.className = "card-caption";
+    caption.textContent = photo.caption || "Still Becoming";
+
+    button.append(image, caption);
+    button.addEventListener("click", () => openViewer(index));
+    grid.append(button);
+  });
+}
+
+function openViewer(index) {
+  currentIndex = index;
+  viewer.classList.add("open");
+  viewer.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  updateViewer();
+}
+
+function closeViewer() {
+  viewer.classList.remove("open");
+  viewer.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  viewerImage.src = "";
+}
+
+function updateViewer() {
+  const photo = photographs[currentIndex];
+  if (!photo) return;
+
+  viewerImage.src = photo.imageUrl;
+  viewerImage.alt = photo.alt_text || photo.caption || "Gallery photograph";
+  viewerCaption.textContent = photo.caption || "";
+  viewerPosition.textContent =
+    (currentIndex + 1) + " / " + photographs.length;
+
+  thumbnails.replaceChildren();
+
+  photographs.forEach((item, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "thumb" +
+      (index === currentIndex ? " active" : "");
+    button.setAttribute("aria-label", "View photograph " + (index + 1));
+
+    const image = document.createElement("img");
+    image.src = item.imageUrl;
+    image.alt = "";
+    button.append(image);
+
+    button.addEventListener("click", () => {
+      currentIndex = index;
+      updateViewer();
+    });
+
+    thumbnails.append(button);
+  });
+
+  const active = thumbnails.querySelector(".thumb.active");
+  active?.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest",
+    inline: "center"
+  });
+}
+
+function moveViewer(direction) {
+  if (!photographs.length) return;
+
+  currentIndex =
+    (currentIndex + direction + photographs.length) %
+    photographs.length;
+
+  updateViewer();
+}
+
+document.getElementById("close-viewer")
+  .addEventListener("click", closeViewer);
+
+document.getElementById("previous")
+  .addEventListener("click", () => moveViewer(-1));
+
+document.getElementById("next")
+  .addEventListener("click", () => moveViewer(1));
+
+viewer.addEventListener("click", event => {
+  if (event.target === viewer) closeViewer();
+});
+
+document.addEventListener("keydown", event => {
+  if (!viewer.classList.contains("open")) return;
+
+  if (event.key === "Escape") closeViewer();
+  if (event.key === "ArrowLeft") moveViewer(-1);
+  if (event.key === "ArrowRight") moveViewer(1);
+});
+
+loadGallery();
+</script>
+
+</body>
+</html>
