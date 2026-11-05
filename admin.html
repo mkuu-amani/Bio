@@ -157,6 +157,39 @@
       <div id="entry-photos"></div>
     </div>
 
+    <div class="panel" id="gallery-panel">
+      <h2>Still Becoming — Photo Gallery</h2>
+      <p class="muted">
+        A separate collection of photographs from your journey.
+        Gallery photographs are independent of your journal entries.
+        They remain private until you publish them.
+      </p>
+
+      <p id="gallery-status" class="muted" aria-live="polite">
+        Choose photographs to begin building your gallery.
+      </p>
+
+      <div id="gallery-controls">
+        <label for="gallery-files">Choose photographs</label>
+        <input id="gallery-files" type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+
+        <label for="gallery-caption">Caption (optional)</label>
+        <input id="gallery-caption" maxlength="300"
+          placeholder="A few words about these photographs…">
+
+        <label for="gallery-alt">Image description (optional)</label>
+        <input id="gallery-alt" maxlength="300"
+          placeholder="Brief description of the photograph">
+
+        <button id="gallery-upload" type="button">
+          Upload photographs
+        </button>
+      </div>
+
+      <div id="gallery-items"></div>
+    </div>
+
     <div class="panel" id="video-panel">
       <h2>Videos</h2>
       <p class="muted">
@@ -1105,6 +1138,311 @@
     loadEntryPhotos(id);
     loadEntryVideos(id);
   });
+
+  // STILL BECOMING — INDEPENDENT PHOTO GALLERY
+
+  const galleryFiles = document.getElementById("gallery-files");
+  const galleryCaption = document.getElementById("gallery-caption");
+  const galleryAlt = document.getElementById("gallery-alt");
+  const galleryUpload = document.getElementById("gallery-upload");
+  const galleryItems = document.getElementById("gallery-items");
+  const galleryStatus = document.getElementById("gallery-status");
+
+  function galleryMessage(text) {
+    galleryStatus.textContent = text;
+  }
+
+  async function loadGalleryPhotos() {
+    if (!currentUser) return;
+
+    galleryItems.replaceChildren();
+    galleryMessage("Loading your gallery…");
+
+    const { data, error } = await supabaseClient
+      .from("gallery_photos")
+      .select("id,storage_path,caption,alt_text,sort_order,is_published,created_at")
+      .eq("owner_id", currentUser.id)
+      .order("sort_order", { ascending: true });
+
+    if (error) {
+      galleryMessage("Couldn't load the gallery. Please check the database policies.");
+      console.error("Gallery loading error:", error);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      galleryMessage("Your gallery is ready for its first photographs.");
+      return;
+    }
+
+    galleryMessage(data.length + " photograph(s) in your gallery.");
+
+    for (const photo of data) {
+      const item = document.createElement("article");
+      item.className = "entry";
+
+      const { data: signed, error: signError } =
+        await supabaseClient.storage
+          .from("journal-photos")
+          .createSignedUrl(photo.storage_path, 3600);
+
+      if (!signError && signed?.signedUrl) {
+        const image = document.createElement("img");
+        image.src = signed.signedUrl;
+        image.alt = photo.alt_text || photo.caption || "Gallery photograph";
+        image.className = "media-preview";
+        item.append(image);
+      }
+
+      const caption = document.createElement("p");
+      caption.textContent = photo.caption || "No caption";
+      item.append(caption);
+
+      const meta = document.createElement("p");
+      meta.className = "muted";
+      meta.textContent = photo.is_published
+        ? "Published in public gallery"
+        : "Private — not visible to visitors";
+      item.append(meta);
+
+      const editCaption = document.createElement("button");
+      editCaption.type = "button";
+      editCaption.className = "secondary";
+      editCaption.textContent = "Edit caption";
+
+      editCaption.addEventListener("click", async () => {
+        const newCaption = window.prompt(
+          "Edit photograph caption:",
+          photo.caption || ""
+        );
+
+        if (newCaption === null) return;
+
+        const { error } = await supabaseClient
+          .from("gallery_photos")
+          .update({ caption: newCaption.trim() })
+          .eq("id", photo.id)
+          .eq("owner_id", currentUser.id);
+
+        if (error) {
+          galleryMessage("Couldn't update the caption.");
+          return;
+        }
+
+        await loadGalleryPhotos();
+        galleryMessage("Caption updated.");
+      });
+
+      item.append(editCaption);
+
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = photo.is_published ? "secondary" : "publish";
+      toggle.textContent = photo.is_published ? "Make private" : "Publish";
+
+      toggle.addEventListener("click", async () => {
+        const question = photo.is_published
+          ? "Make this photograph private? It will disappear from the public gallery."
+          : "Publish this photograph in your public gallery?";
+
+        if (!window.confirm(question)) return;
+
+        toggle.disabled = true;
+
+        const { error } = await supabaseClient
+          .from("gallery_photos")
+          .update({ is_published: !photo.is_published })
+          .eq("id", photo.id)
+          .eq("owner_id", currentUser.id);
+
+        if (error) {
+          galleryMessage("Couldn't change publication status.");
+          toggle.disabled = false;
+          return;
+        }
+
+        await loadGalleryPhotos();
+        galleryMessage(
+          photo.is_published
+            ? "Photograph is now private."
+            : "Photograph published in your gallery."
+        );
+      });
+
+      item.append(toggle);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "secondary";
+      remove.textContent = "Delete photograph";
+
+      remove.addEventListener("click", async () => {
+        if (!window.confirm(
+          "Permanently delete this gallery photograph? This cannot be undone."
+        )) return;
+
+        remove.disabled = true;
+
+        const { error: recordError } = await supabaseClient
+          .from("gallery_photos")
+          .delete()
+          .eq("id", photo.id)
+          .eq("owner_id", currentUser.id);
+
+        if (recordError) {
+          galleryMessage("Couldn't delete the photograph record.");
+          remove.disabled = false;
+          return;
+        }
+
+        const { error: storageError } = await supabaseClient.storage
+          .from("journal-photos")
+          .remove([photo.storage_path]);
+
+        await loadGalleryPhotos();
+
+        galleryMessage(storageError
+          ? "Gallery record deleted, but storage cleanup needs attention."
+          : "Photograph permanently deleted.");
+      });
+
+      item.append(remove);
+      galleryItems.append(item);
+    }
+  }
+
+  galleryUpload.addEventListener("click", async () => {
+    if (!currentUser) {
+      galleryMessage("Please sign in before uploading photographs.");
+      return;
+    }
+
+    const files = Array.from(galleryFiles.files || []);
+
+    if (files.length === 0) {
+      galleryMessage("Please choose at least one photograph.");
+      return;
+    }
+
+    const extensions = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif"
+    };
+
+    for (const file of files) {
+      if (!extensions[file.type]) {
+        galleryMessage("Please choose JPEG, PNG, WebP or GIF photographs.");
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        galleryMessage("Each photograph must be no larger than 10 MB.");
+        return;
+      }
+    }
+
+    galleryUpload.disabled = true;
+    galleryMessage("Preparing your photographs…");
+
+    let uploadedCount = 0;
+
+    try {
+      const { data: existing, error: listError } = await supabaseClient
+        .from("gallery_photos")
+        .select("sort_order")
+        .eq("owner_id", currentUser.id)
+        .order("sort_order", { ascending: false })
+        .limit(1);
+
+      if (listError) throw listError;
+
+      let nextOrder = existing?.length
+        ? existing[0].sort_order + 1
+        : 0;
+
+      for (const file of files) {
+        galleryMessage(
+          "Uploading photograph " + (uploadedCount + 1) +
+          " of " + files.length + "…"
+        );
+
+        const storagePath =
+          currentUser.id + "/gallery/" +
+          crypto.randomUUID() + "." + extensions[file.type];
+
+        const { error: uploadError } = await supabaseClient.storage
+          .from("journal-photos")
+          .upload(storagePath, file, {
+            contentType: file.type,
+            cacheControl: "3600",
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { error: metadataError } = await supabaseClient
+          .from("gallery_photos")
+          .insert({
+            storage_path: storagePath,
+            caption: galleryCaption.value.trim(),
+            alt_text: galleryAlt.value.trim(),
+            sort_order: nextOrder,
+            is_published: false
+          });
+
+        if (metadataError) {
+          await supabaseClient.storage
+            .from("journal-photos")
+            .remove([storagePath]);
+
+          throw metadataError;
+        }
+
+        uploadedCount++;
+        nextOrder++;
+      }
+
+      galleryFiles.value = "";
+      galleryCaption.value = "";
+      galleryAlt.value = "";
+
+      await loadGalleryPhotos();
+
+      galleryMessage(
+        uploadedCount + " photograph(s) uploaded successfully. " +
+        "They are private until you publish them."
+      );
+
+    } catch (error) {
+      console.error("Gallery upload error:", error);
+
+      await loadGalleryPhotos();
+
+      galleryMessage(
+        uploadedCount > 0
+          ? uploadedCount + " photograph(s) uploaded; another upload failed. Check your gallery."
+          : "Upload failed. Please check your connection and Supabase storage policies."
+      );
+    } finally {
+      galleryUpload.disabled = false;
+    }
+  });
+
+  // Load the gallery whenever the private workspace opens.
+  const originalShowSession = showSession;
+
+  showSession = async function(session) {
+    await originalShowSession(session);
+
+    if (currentUser) {
+      await loadGalleryPhotos();
+    } else {
+      galleryItems.replaceChildren();
+      galleryMessage("Sign in to manage your gallery.");
+    }
+  };
 
   init();
 </script>
