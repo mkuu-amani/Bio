@@ -138,7 +138,20 @@ h1 {
   transform: scale(1.045);
   opacity: .82;
 }
+/* DISCREET PHOTO WATERMARK */
 
+.gallery-card::after {
+  content: "© Mkuu Amani";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  color: rgba(255,255,255,.78);
+  font: 11px system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-shadow: 0 1px 5px rgba(0,0,0,.8);
+  pointer-events: none;
+}
 .card-caption {
   position: absolute;
   inset: auto 0 0;
@@ -219,7 +232,18 @@ footer {
   padding: 10px 85px;
   position: relative;
 }
-
+.viewer-stage::after {
+  content: "© Mkuu Amani";
+  position: absolute;
+  right: 28px;
+  bottom: 22px;
+  z-index: 3;
+  color: rgba(255,255,255,.78);
+  font: 12px system-ui, sans-serif;
+  letter-spacing: .1em;
+  text-shadow: 0 1px 6px rgba(0,0,0,.9);
+  pointer-events: none;
+}
 #viewer-image {
   max-width: 100%;
   max-height: 100%;
@@ -307,6 +331,11 @@ footer {
   .gallery-card { aspect-ratio: 1 / 1.15; }
   .card-caption { opacity: 1; padding: 30px 10px 10px; font-size: .78rem; }
   .viewer-stage { padding: 10px 5px; }
+  .viewer-stage::after {
+  right: 12px;
+  bottom: 16px;
+  font-size: 10px;
+}
   .viewer-nav {
     top: auto;
     bottom: 10px;
